@@ -34,7 +34,7 @@ Set `SKIP_AUTH=true` in `.env` to bypass authentication and run without a databa
 | Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
 | Backend | Next.js Server Actions + API Routes |
 | Database | PostgreSQL via Prisma ORM |
-| UI Components | Parto Design System + custom RTL-safe components |
+| UI Components | RTL-ready shadcn-based design system + custom RTL-safe components |
 | Auth | Cookie-based sessions with bcrypt |
 | Deployment | Docker (standalone Next.js output) |
 
@@ -88,7 +88,6 @@ The following placeholders are replaced by `setup.sh`:
 | Placeholder | Where | What |
 |---|---|---|
 | `{{PROJECT_NAME}}` | package.json, layout.tsx, CLAUDE.md, docker-compose.yml, docs/PRD.md | Project name (kebab-case) |
-| `{{SERVICE_NAME}}` | .gitlab-ci.yml | Helm service name for K8s deploy |
 
 ## Architecture Rules
 

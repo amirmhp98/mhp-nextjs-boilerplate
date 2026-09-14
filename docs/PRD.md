@@ -113,7 +113,7 @@ User navigates to /path
 
 | Token          | Value                          |
 |----------------|--------------------------------|
-| Brand Color    | `#4ADE80` (Parto green)        |
+| Brand Color    | `#4ADE80` (brand green)        |
 | Font Family    | Yekan Bakh (Persian typeface)  |
 | Theme          | Dark mode (default)            |
 | Layout         | RTL                            |

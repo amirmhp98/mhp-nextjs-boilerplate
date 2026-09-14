@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# ─── Parto Project Boilerplate Setup ─────────────────────────
+# ─── Project Boilerplate Setup ─────────────────────────────────────────────────────────
 # This script initializes a new project from the boilerplate.
 # It replaces all {{PLACEHOLDERS}} and sets up the environment.
 
@@ -10,7 +10,7 @@ GREEN='\033[0;32m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-echo -e "${BOLD}${GREEN}🔧 Parto Project Boilerplate Setup${NC}\n"
+echo -e "${BOLD}${GREEN}🔧 Project Boilerplate Setup${NC}\n"
 
 # ─── Collect project info ─────────────────────────────────────
 
@@ -19,9 +19,6 @@ if [[ -z "$PROJECT_NAME" ]]; then
   echo "Error: Project name is required."
   exit 1
 fi
-
-read -p "GitLab service name for Helm deploy (default: $PROJECT_NAME): " SERVICE_NAME
-SERVICE_NAME="${SERVICE_NAME:-$PROJECT_NAME}"
 
 # ─── Replace placeholders ────────────────────────────────────
 
@@ -89,7 +86,7 @@ echo -e "\n${CYAN}Initializing Git repository...${NC}"
 if [[ ! -d .git ]]; then
   git init
   git add -A
-  git commit -m "Initial project from Parto boilerplate"
+  git commit -m "Initial project from boilerplate"
   echo "  ✓ Git initialized with initial commit"
 else
   echo "  ⏭ Git already initialized"

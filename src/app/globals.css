@@ -93,7 +93,7 @@
     --surface-3: 0 0% 100%;
     --surface-4: 240 4.8% 95.9%;
 
-    /* ─── Parto Design System Overrides ─────────────────────────── */
+    /* ─── Design-System Token Overrides ─────────────────────────── */
     --background-overlay-default: 0 0% 98.8%;
     --background-overlay-hover: 0 0% 95.3%;
     --background-selection: 0 0% 92.9%;
@@ -173,7 +173,7 @@
     --surface-3: 230 15% 18%;
     --surface-4: 230 15% 22%;
 
-    /* ─── Parto Design System Overrides ─────────────────────────── */
+    /* ─── Design-System Token Overrides ─────────────────────────── */
     --background-overlay-default: 240 10% 14%;
     --background-overlay-hover: 240 10% 18%;
     --background-selection: 240 10% 19%;
@@ -350,11 +350,11 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Parto design-system dark-mode overrides
+   Design-system dark-mode overrides
    Placed OUTSIDE @layer so they beat Tailwind utility classes in cascade.
    --------------------------------------------------------------------------- */
 
-/* Sync Parto SelectTrigger with our input field styling */
+/* Sync the design-system SelectTrigger with our input field styling */
 .dark [data-slot="select-trigger"],
 .dark button[role="combobox"] {
   background-color: hsl(var(--background)) !important;
@@ -367,7 +367,7 @@
   border-color: hsl(var(--border-stronger)) !important;
 }
 
-/* Note: Parto library's dark theme sets --foreground-contrast to near-black, making
+/* Note: the UI library's dark theme sets --foreground-contrast to near-black, making
    text-foreground-contrast invisible on brand-colored surfaces (e.g. checkbox tick).
    The fix lives in UiComponents.tsx wrappers which override the CSS variable at the
    element level via inline style. */

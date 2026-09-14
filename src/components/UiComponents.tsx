@@ -22,7 +22,7 @@ export { Badge, badgeVariants };
 export { Input };
 export { FormField };
 export { Tabs, TabsList, TabsTrigger, TabsContent };
-// Stepper is a fully custom component not present in @parto-system-design/ui
+// Stepper is a fully custom component not present in the external UI library
 export { Stepper, DotStepper, ProgressStepper };
 export type { StepperProps };
 // ---------------------------------------------------------------------------
