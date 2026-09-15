@@ -33,7 +33,7 @@ Set `SKIP_AUTH=true` in `.env` to bypass authentication and run without a databa
 |-------|-----------|
 | Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
 | Backend | Next.js Server Actions + API Routes |
-| Database | PostgreSQL via Prisma ORM |
+| Database | PostgreSQL via Prisma 6 |
 | UI Components | Locally owned shadcn components generated in RTL mode (logical classes), re-exported from `@/components/UiComponents` |
 | Locale | One profile (`src/lib/locale.ts`) drives direction, calendar, numerals, time zone, currency; Intl-based formatting in `@/lib/format` |
 | Auth | Cookie-based sessions with bcrypt |
@@ -81,6 +81,7 @@ docs/            # PRD and checklists
 | `npm run db:seed` | Seed the default admin user |
 | `npm run deps:update` | Bump all dependencies to latest minor/patch and install |
 | `npm run deps:update:major` | Interactive picker for major upgrades |
+| `npm run reinstall` | Wipe `node_modules` + lockfile and reinstall (fixes npm dropping native bindings after an incremental install) |
 
 ## Features
 
