@@ -8,14 +8,15 @@
  *   t('home.welcome', { name: user.fullName })   // "خوش آمدید، سارا"
  *   tp('ui.itemCount', 3)                        // "۳ مورد" / "3 items"
  *
- * Keys are the union of `fa.ts` keys; `{param}` names are inferred from the
- * Persian text, so a missing or misspelled param is a type error.
+ * Keys come from the dictionary in `src/messages`; `{param}` names are
+ * inferred from the text, so a missing or misspelled param is a type error.
+ * A key that is somehow missing at runtime renders as the key itself (with a
+ * console warning outside production) rather than breaking the page.
  */
-import { fa } from '@/messages/fa';
-import { en } from '@/messages/en';
-import { intlTag, locale, type LocaleId } from '@/lib/locale';
+import { messages } from '@/messages';
+import { intlTag, locale } from '@/lib/locale';
 
-type Dictionary = typeof fa;
+type Dictionary = typeof messages;
 
 /** Every message key. */
 export type MessageKey = keyof Dictionary;
@@ -48,14 +49,19 @@ type PluralParamsOf<B extends PluralKey> = Exclude<
   'count'
 >;
 
-const DICTIONARIES: Record<LocaleId, Record<MessageKey, string>> = { fa, en };
-
-const messages = DICTIONARIES[locale.id];
-
 const pluralRules = new Intl.PluralRules(locale.tag);
 
 /** Numbers are rendered in the locale's numbering system (۱۲۳ for fa). */
 const numberFormat = new Intl.NumberFormat(intlTag(), { useGrouping: false });
+
+function lookup(key: string): string {
+  const value = (messages as Record<string, string | undefined>)[key];
+  if (value !== undefined) return value;
+  if (process.env.NODE_ENV !== 'production') {
+    console.warn(`[t] missing message key "${key}"`);
+  }
+  return key;
+}
 
 function interpolate(template: string, params?: Record<string, ParamValue>): string {
   if (!params) return template;
@@ -71,7 +77,7 @@ function interpolate(template: string, params?: Record<string, ParamValue>): str
  */
 export function t<K extends MessageKey>(key: K, ...args: ParamsArg<ParamsOf<K>>): string {
   const params: Record<string, ParamValue> | undefined = args[0];
-  return interpolate(messages[key], params);
+  return interpolate(lookup(key), params);
 }
 
 /**
@@ -87,5 +93,5 @@ export function tp<B extends PluralKey>(
   const form = pluralRules.select(count) === 'one' ? 'one' : 'other';
   const key = `${base}.${form}` as MessageKey;
   const params: Record<string, ParamValue> = { ...args[0], count };
-  return interpolate(messages[key], params);
+  return interpolate(lookup(key), params);
 }

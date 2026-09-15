@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { cookies } from 'next/headers';
+import { t } from '@/lib/t';
 
 vi.mock('@/services/auth.service', () => ({
   authenticate: vi.fn(),
@@ -25,7 +26,7 @@ beforeEach(() => {
 describe('loginAction', () => {
   it('returns a validation message when fields are missing', async () => {
     const result = await loginAction(null, formData({ username: ' ', password: '' }));
-    expect(result?.error).toMatch(/[؀-ۿ]/);
+    expect(result?.error).toBe(t('validation.usernameRequired'));
     expect(authenticate).not.toHaveBeenCalled();
   });
 
@@ -34,7 +35,7 @@ describe('loginAction', () => {
 
     const result = await loginAction(null, formData({ username: 'admin', password: 'nope' }));
 
-    expect(result).toEqual({ error: 'نام کاربری یا رمز عبور اشتباه است' });
+    expect(result).toEqual({ error: t('auth.errors.invalidCredentials') });
     expect(cookieStore.set).not.toHaveBeenCalled();
   });
 

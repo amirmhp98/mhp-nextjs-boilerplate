@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { t } from '@/lib/t';
 import { loginSchema } from '@/lib/validations/auth';
 import { createUserSchema, resetPasswordSchema, updateUserSchema } from '@/lib/validations/user';
 
@@ -26,16 +27,16 @@ describe('createUserSchema', () => {
   });
 
   it.each([
-    ['short username', { ...valid, username: 'ab' }],
-    ['persian username', { ...valid, username: 'کاربر' }],
-    ['short password', { ...valid, password: '1234567' }],
-    ['empty name', { ...valid, fullName: ' ' }],
-    ['unknown role', { ...valid, role: 'SUPERUSER' }],
-    ['missing role', { ...valid, role: undefined }],
-  ])('rejects %s', (_label, payload) => {
+    ['short username', { ...valid, username: 'ab' }, t('validation.usernameMin', { min: 3 })],
+    ['persian username', { ...valid, username: 'کاربر' }, t('validation.usernameChars')],
+    ['short password', { ...valid, password: '1234567' }, t('validation.passwordMin', { min: 8 })],
+    ['empty name', { ...valid, fullName: ' ' }, t('validation.fullNameMin')],
+    ['unknown role', { ...valid, role: 'SUPERUSER' }, t('validation.roleInvalid')],
+    ['missing role', { ...valid, role: undefined }, t('validation.roleInvalid')],
+  ])('rejects %s', (_label, payload, message) => {
     const result = createUserSchema.safeParse(payload);
     expect(result.success).toBe(false);
-    if (!result.success) expect(result.error.issues[0]?.message).toMatch(/[؀-ۿ]/);
+    if (!result.success) expect(result.error.issues[0]?.message).toBe(message);
   });
 });
 

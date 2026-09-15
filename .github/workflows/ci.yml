@@ -26,14 +26,26 @@ jobs:
       - run: npx prisma generate
       - run: npm run lint:all
       - run: npm run test:coverage
+      - run: npm run test
+        env:
+          NEXT_PUBLIC_LOCALE: en
       - run: npm run build
         env:
           DATABASE_URL: postgresql://build:build@localhost:5432/build
+      # The boilerplate keeps both languages; a project has one (setup.sh --locale).
+      - run: npm run build
+        env:
+          DATABASE_URL: postgresql://build:build@localhost:5432/build
+          NEXT_PUBLIC_LOCALE: en
 
   e2e:
-    name: End-to-end (Playwright)
+    name: End-to-end (${{ matrix.locale }})
     runs-on: ubuntu-latest
     needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        locale: [fa, en]
     services:
       postgres:
         image: postgres:16-alpine
@@ -49,6 +61,7 @@ jobs:
           --health-retries 10
     env:
       DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app?schema=public
+      NEXT_PUBLIC_LOCALE: ${{ matrix.locale }}
       CI: true
     steps:
       - uses: actions/checkout@v4
@@ -65,9 +78,40 @@ jobs:
       - uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.locale }}
           path: playwright-report
           retention-days: 7
+
+  setup-smoke:
+    name: setup.sh (${{ matrix.locale }})
+    runs-on: ubuntu-latest
+    needs: quality
+    strategy:
+      fail-fast: false
+      matrix:
+        locale: [fa, en]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      # What an adopter does: run setup.sh on a clone, then work in one language.
+      - name: Run setup.sh on a copy
+        run: |
+          mkdir -p /tmp/smoke
+          git archive HEAD | tar -x -C /tmp/smoke
+          cd /tmp/smoke
+          ./setup.sh smoke-${{ matrix.locale }} --locale ${{ matrix.locale }}
+          test ! -f src/messages/$([ "${{ matrix.locale }}" = fa ] && echo en || echo fa).ts
+      - name: Verify the generated project
+        working-directory: /tmp/smoke
+        env:
+          DATABASE_URL: postgresql://build:build@localhost:5432/build
+        run: |
+          npm run lint:all
+          npm run test
+          npm run build
 
   docker:
     name: Docker image

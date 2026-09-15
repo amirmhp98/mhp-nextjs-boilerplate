@@ -7,8 +7,8 @@ import { DEFAULT_LOCALE, LOCALES } from '../src/lib/locale';
  * Override PORT to run beside another dev server (e.g. in a worktree).
  *
  * The browser runs with the same locale profile the app is built with
- * (NEXT_PUBLIC_LOCALE, resolved in src/lib/locale.ts), and specs read their
- * copy through t(), so the suite passes for either profile.
+ * (resolved in src/lib/locale.ts), and specs read their copy through t(),
+ * so the suite passes for whichever language the project uses.
  */
 const profile = LOCALES[DEFAULT_LOCALE];
 const PORT = process.env.PORT ?? '3000';

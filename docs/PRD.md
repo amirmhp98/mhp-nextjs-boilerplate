@@ -18,8 +18,8 @@
 
 ## Locale
 
-One locale profile (`src/lib/locale.ts`) per deployment, chosen with `NEXT_PUBLIC_LOCALE` at build
-time. `fa` (default): Persian, RTL, Jalali calendar, Persian numerals, `Asia/Tehran`, toman.
+One locale profile (`src/lib/locale.ts`) per project, chosen once with `setup.sh --locale`.
+`fa` (default): Persian, RTL, Jalali calendar, Persian numerals, `Asia/Tehran`, toman.
 `en`: English, LTR, Gregorian, Latin numerals, `UTC`, USD.
 
 ## Modules & routes

@@ -1,10 +1,10 @@
 /**
- * Persian (fa-IR) UI strings — the source dictionary.
+ * Persian (fa-IR) UI strings.
  *
- * Flat, dot-namespaced keys grouped by screen. `en.ts` must provide every key
- * defined here (enforced by its type annotation). Plural strings come in
+ * Flat, dot-namespaced keys grouped by screen. Plural strings come in
  * `<base>.one` / `<base>.other` pairs and are read through `tp()`.
- * Placeholders use `{name}` and are filled by `t()` / `tp()`.
+ * Placeholders use `{name}` and are filled by `t()` / `tp()`; their names are
+ * inferred from the text, so a missing param is a type error at the call site.
  */
 export const fa = {
   // ── App shell ──────────────────────────────────────────────

@@ -1,12 +1,12 @@
-import type { fa } from '@/messages/fa';
-
 /**
  * English (en-US) UI strings.
  *
- * Typed against the Persian dictionary so a key that exists in `fa.ts` but is
- * missing here fails type-checking. Keys are identical; only the text differs.
+ * Flat, dot-namespaced keys grouped by screen. Plural strings come in
+ * `<base>.one` / `<base>.other` pairs and are read through `tp()`.
+ * Placeholders use `{name}` and are filled by `t()` / `tp()`; their names are
+ * inferred from the text, so a missing param is a type error at the call site.
  */
-export const en: Record<keyof typeof fa, string> = {
+export const en = {
   // ── App shell ──────────────────────────────────────────────
   'shell.skipToContent': 'Skip to main content',
   'shell.logoAlt': 'Logo',
@@ -146,4 +146,4 @@ export const en: Record<keyof typeof fa, string> = {
   'ui.datePicker.placeholder': 'Pick a date',
   'ui.datePicker.rangePlaceholder': 'Pick a date range',
   'ui.datePicker.rangeLabel': '{from} – {to}',
-};
+} as const;

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { revalidatePath } from 'next/cache';
 import { ServiceError } from '@/lib/errors';
+import { t } from '@/lib/t';
 
 vi.mock('@/lib/auth', () => ({
   requireAdmin: vi.fn(async () => ({
@@ -55,7 +56,9 @@ describe('createUserAction', () => {
     const result = await createUserAction({ ...validCreate, password: 'short' });
 
     expect(result.ok).toBe(false);
-    if (!result.ok) expect(result.fieldErrors?.password?.[0]).toMatch(/۸/);
+    if (!result.ok) {
+      expect(result.fieldErrors?.password?.[0]).toBe(t('validation.passwordMin', { min: 8 }));
+    }
     expect(users.createUser).not.toHaveBeenCalled();
   });
 

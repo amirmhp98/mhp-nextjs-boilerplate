@@ -1,7 +1,7 @@
 # {{PROJECT_NAME}}
 
 Locale-profile-driven web application boilerplate: Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL.
-Persian / RTL / Jalali by default, English / LTR / Gregorian with a single env var.
+One language per project, chosen at setup: Persian / RTL / Jalali (default) or English / LTR / Gregorian.
 Built to be driven by AI coding agents: the architecture is enforced by lint, one complete reference
 module shows the pattern, a scaffold copies it, and the agent configuration ships with the repo.
 
@@ -10,7 +10,7 @@ module shows the pattern, a scaffold copies it, and the agent configuration ship
 Requirements: Node LTS (`.nvmrc`), Docker (for the local database) or any PostgreSQL 14+.
 
 ```bash
-./setup.sh my-project     # replaces placeholders, resets git history, installs, creates .env
+./setup.sh my-project     # add --locale en for an English project (default: fa)
 npm run db:up             # Postgres in Docker (or edit DATABASE_URL in .env)
 npm run db:deploy         # apply migrations
 npm run db:seed           # admin / admin123
@@ -48,7 +48,7 @@ src/
   services/           business logic, framework-free
   components/         ui/ primitives · UiComponents.tsx barrel · layout/ shell
   lib/                locale, t, format, persian, validators, validations, env, auth, prisma, …
-  messages/           fa.ts (source) and en.ts (must match keys)
+  messages/           index.ts + the project's one dictionary (fa.ts or en.ts)
   __tests__/          unit tests, factories, prisma mock
 prisma/               schema, migrations, seed · prisma.config.ts at the root
 e2e/                  Playwright config and specs
@@ -83,10 +83,16 @@ a new one in the same shape; `AGENTS.md` walks through the steps.
 | `fa` (default) | RTL       | `fa-IR`  | Jalali    | Persian digits | `Asia/Tehran` | IRR (shown as toman) |
 | `en`           | LTR       | `en-US`  | Gregorian | Latin digits   | `UTC`         | USD                  |
 
-Set `NEXT_PUBLIC_LOCALE=en` and rebuild to switch. `<html lang dir>`, the `DirectionProvider`, the font,
-Playwright's browser locale, every formatter and every `t()` string follow the profile. Rules that keep
-this working (logical utilities, `side="start|end"`, `t()` for all strings, `<Ltr>` for inline Latin) are
-in `AGENTS.md` and enforced by `npm run lint:rtl`.
+`setup.sh --locale fa|en` picks one: it keeps that dictionary in `src/messages/`, deletes the other, and
+writes the profile into `src/lib/locale.ts`. From then on there is one language and one file to add
+strings to. `<html lang dir>`, the `DirectionProvider`, the font, Playwright's browser locale, every
+formatter and every `t()` string follow the profile. Rules that keep this working (logical utilities,
+`side="start|end"`, `t()` for all strings, `<Ltr>` for inline Latin) are in `AGENTS.md` and enforced by
+`npm run lint:rtl`.
+
+The boilerplate repository itself carries both dictionaries and builds and tests both profiles in CI
+(`NEXT_PUBLIC_LOCALE` overrides the profile there); that override is removed from a project's
+`.env.example` by `setup.sh`.
 
 ## Working with AI agents
 
@@ -107,7 +113,6 @@ After `./setup.sh`, the project is yours. A guide to the parts that are examples
 | `src/app/(app)/components/page.tsx`                                                  | **Keep for reference**, or delete when you have your own pages. It is the visual regression surface for both directions and is behind login. |
 | `src/app/(app)/page.tsx`                                                             | **Replace.** Placeholder dashboard.                                                                                                          |
 | `src/lib/validators/iran.ts`, `src/lib/persian.ts`                                   | Keep if you handle Iranian identifiers or Persian input; otherwise delete along with their tests.                                            |
-| `src/messages/en.ts`                                                                 | Keep even if you only ship Persian; it costs nothing and keeps the `en` profile working.                                                     |
 | `docs/decisions/*`                                                                   | Keep; add your own as you diverge.                                                                                                           |
 | `.claude/skills/*`                                                                   | Keep if you use Claude Code; otherwise delete `.claude/` entirely.                                                                           |
 | Default admin `admin` / `admin123`                                                   | **Change on first login.** `prisma/seed.ts` reads `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` if you want different defaults.              |

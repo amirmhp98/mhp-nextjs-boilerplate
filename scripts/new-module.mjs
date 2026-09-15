@@ -12,9 +12,10 @@
  *   src/app/invoices/invoice-list.tsx     client island
  *   src/__tests__/services/invoice.service.test.ts
  *
- * Nothing is overwritten. After running: add the Prisma model, run
- * `npm run db:migrate`, add the message keys printed at the end to
- * src/messages/{fa,en}.ts, and wire the route into src/lib/navigation.ts.
+ * and inserts placeholder message keys into the project's dictionary in
+ * src/messages/. Nothing is overwritten. After running: add the Prisma model,
+ * run `npm run db:migrate`, translate the placeholders, and wire the route
+ * into src/lib/navigation.ts.
  */
 import fs from 'node:fs';
 import path from 'node:path';
@@ -232,7 +233,8 @@ for (const [rel, content] of Object.entries(files)) {
   console.log(`created ${rel}`);
 }
 
-// Message keys: inserted before the "Error boundary" block so both dictionaries stay in sync.
+// Message keys: inserted before the "Error boundary" block of every dictionary
+// present in src/messages (a project has one; the boilerplate itself has both).
 const MESSAGE_MARKER = '  // ── Error boundary';
 function addMessages(file, entries) {
   const abs = path.join(root, file);
@@ -250,16 +252,28 @@ function addMessages(file, entries) {
   fs.writeFileSync(abs, src.slice(0, at) + block + src.slice(at));
   console.log(`updated ${file}`);
 }
-addMessages('src/messages/fa.ts', [
-  [`${camel}s.title`, `${pascal}s`],
-  [`${camel}s.empty`, 'موردی ثبت نشده است.'],
-  [`${camel}s.delete`, 'حذف'],
-]);
-addMessages('src/messages/en.ts', [
-  [`${camel}s.title`, `${pascal}s`],
-  [`${camel}s.empty`, 'Nothing here yet.'],
-  [`${camel}s.delete`, 'Delete'],
-]);
+const PLACEHOLDERS = {
+  fa: [
+    [`${camel}s.title`, `${pascal}s`],
+    [`${camel}s.empty`, 'موردی ثبت نشده است.'],
+    [`${camel}s.delete`, 'حذف'],
+  ],
+  en: [
+    [`${camel}s.title`, `${pascal}s`],
+    [`${camel}s.empty`, 'Nothing here yet.'],
+    [`${camel}s.delete`, 'Delete'],
+  ],
+};
+const dictionaries = Object.keys(PLACEHOLDERS)
+  .map((id) => `src/messages/${id}.ts`)
+  .filter((file) => fs.existsSync(path.join(root, file)));
+if (dictionaries.length === 0) {
+  console.error('No dictionary found in src/messages/ (expected fa.ts or en.ts).');
+  process.exit(1);
+}
+for (const file of dictionaries) {
+  addMessages(file, PLACEHOLDERS[path.basename(file, '.ts')]);
+}
 
 console.log(`
 Next steps for "${kebab}":
@@ -272,7 +286,7 @@ Next steps for "${kebab}":
          @@map("${plural.replace(/-/g, '_')}")
        }
      then: npm run db:migrate -- --name add-${kebab}
-  2. src/messages/fa.ts → translate the '${camel}s.*' placeholders
+  2. ${dictionaries.join(', ')} → translate the '${camel}s.*' placeholders
   3. src/lib/navigation.ts → add { label: t('${camel}s.title'), href: '/${plural}', icon: ... }
   4. npm run lint:all && npm run test
 `);

@@ -2,9 +2,11 @@
  * Locale profile — the single source of truth for language, direction,
  * calendar, numerals, time zone, week structure, and currency.
  *
- * Simple mode: one active locale per deployment. `DEFAULT_LOCALE` is 'fa'
- * unless NEXT_PUBLIC_LOCALE is set at build time. Nothing else in the app
- * should ask "is this RTL?"; it reads `locale` (or a field of it) instead.
+ * One language per project: `setup.sh --locale fa|en` writes it into
+ * `FALLBACK_LOCALE` below, and NEXT_PUBLIC_LOCALE can still override it at
+ * build time (the boilerplate's own CI uses that to exercise both profiles).
+ * Nothing else in the app should ask "is this RTL?"; it reads `locale` (or a
+ * field of it) instead.
  *
  * Font family is keyed off <html lang> in globals.css, so it is not part of
  * the profile.
@@ -66,9 +68,12 @@ export const LOCALES: Record<LocaleId, LocaleProfile> = {
   },
 };
 
+/** Locale used when NEXT_PUBLIC_LOCALE is unset. setup.sh rewrites this line. */
+const FALLBACK_LOCALE: LocaleId = 'fa';
+
 function resolveDefaultLocale(): LocaleId {
   const fromEnv = process.env.NEXT_PUBLIC_LOCALE;
-  return fromEnv && fromEnv in LOCALES ? (fromEnv as LocaleId) : 'fa';
+  return fromEnv && fromEnv in LOCALES ? (fromEnv as LocaleId) : FALLBACK_LOCALE;
 }
 
 export const DEFAULT_LOCALE: LocaleId = resolveDefaultLocale();

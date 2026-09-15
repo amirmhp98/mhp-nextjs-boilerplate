@@ -6,7 +6,8 @@ Rules for any coding agent (Claude Code, Cursor, Codex, Copilot) working in this
 ## What this is
 
 A locale-profile-driven web application built on Next.js 16 (App Router), React 19, Tailwind CSS 4,
-Prisma 6 and PostgreSQL. Persian / RTL / Jalali by default, English / LTR with one env var.
+Prisma 6 and PostgreSQL. One language per project, chosen at setup: Persian / RTL / Jalali or
+English / LTR / Gregorian.
 Cookie sessions, no external auth provider. `docs/PRD.md` describes the product; read it before
 making product decisions. `docs/decisions/` records why the big choices were made.
 
@@ -31,7 +32,7 @@ src/
     layout/           App shell: Sidebar, Header, Logo, providers
   lib/
     locale.ts         Locale profile (lang, dir, calendar, numerals, tz, currency) — source of truth
-    t.ts              t() / tp() message lookup; strings live in src/messages/{fa,en}.ts
+    t.ts              t() / tp() message lookup; strings live in src/messages/
     format.ts         Intl formatting: numbers, currency, dates, relative time, lists, plural, sort
     persian.ts        Input normalisation (digits, Arabic/Persian characters)
     validators/       Iranian identifiers (national ID, mobile, SHEBA, card, postal code)
@@ -42,7 +43,7 @@ src/
     errors.ts         ServiceError
     navigation.ts     Single nav config for sidebar and header title
     prisma.ts, logger.ts, session-cookie.ts, preferences.ts, app-config.ts, theme.ts, utils.ts
-  messages/           User-facing strings per locale (fa.ts is the source; en.ts must match its keys)
+  messages/           User-facing strings: index.ts exports the project's one dictionary
   types/              Shared TypeScript types
   __tests__/          Vitest unit tests (mirrors src/) + factories + prisma mock
 prisma/               schema.prisma, migrations/, seed.ts; prisma.config.ts at the root
@@ -72,7 +73,7 @@ Type-only imports are always allowed. `npm run lint` fails on violations.
 
 1. **Scaffold**: `npm run new:module <name>` creates validation, service, action, page, client island and test stubs.
 2. **Schema**: add the model to `prisma/schema.prisma`, run `npm run db:migrate -- --name <change>`. Commit the migration.
-3. **Strings**: add keys to `src/messages/fa.ts` and `en.ts`. Components call `t('key')`; never inline text.
+3. **Strings**: add keys to the dictionary in `src/messages/`. Components call `t('key')`; never inline text.
 4. **Validation**: zod schemas in `src/lib/validations/<module>.ts` with `t()` messages. Shared by server and client.
 5. **Service**: pure functions. Throw `ServiceError(t('...'), 'CODE')` for expected failures.
 6. **Action**: `'use server'` file. `requireAuth`/`requireAdmin` → `schema.safeParse(input)` → service → `revalidatePath` → `ActionResult`. Inputs are typed `unknown`.
@@ -99,7 +100,7 @@ Type-only imports are always allowed. `npm run lint` fails on violations.
 
 ### Locale and direction
 
-- `src/lib/locale.ts` decides language, direction, calendar, numerals, time zone and currency. Never hardcode `'rtl'`, `'fa-IR'`, Persian digits or a calendar; read the profile.
+- `src/lib/locale.ts` decides language, direction, calendar, numerals, time zone and currency (set once by `setup.sh --locale`). Never hardcode `'rtl'`, `'fa-IR'`, Persian digits or a calendar; read the profile.
 - Logical Tailwind utilities only: `ms- me- ps- pe- start- end- border-s border-e rounded-s rounded-e text-start text-end`. `npm run lint:rtl` rejects physical ones.
 - Overlays take logical sides: `side="start" | "end"` on Tooltip, Popover, DropdownMenu, Sheet content.
 - Directional icons flip: chevrons and arrows get `rtl:rotate-180`; panel icons get `rtl:-scale-x-100`.
@@ -133,7 +134,7 @@ Type-only imports are always allowed. `npm run lint` fails on violations.
 ## Definition of done
 
 Build passes, `lint:all` passes, unit tests pass, the feature was exercised in the browser
-(or an e2e spec covers it), strings exist in both dictionaries, and `docs/PRD.md` reflects any
+(or an e2e spec covers it), every new string has a dictionary key, and `docs/PRD.md` reflects any
 product-visible change.
 
 <!-- BEGIN:nextjs-agent-rules -->
