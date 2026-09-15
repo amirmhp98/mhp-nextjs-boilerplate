@@ -100,11 +100,19 @@ Type-only imports are always allowed. `npm run lint` fails on violations.
 
 ### Locale and direction
 
-- `src/lib/locale.ts` decides language, direction, calendar, numerals, time zone and currency (set once by `setup.sh --locale`). Never hardcode `'rtl'`, `'fa-IR'`, Persian digits or a calendar; read the profile.
-- Logical Tailwind utilities only: `ms- me- ps- pe- start- end- border-s border-e rounded-s rounded-e text-start text-end`. `npm run lint:rtl` rejects physical ones.
-- Overlays take logical sides: `side="start" | "end"` on Tooltip, Popover, DropdownMenu, Sheet content.
+- `src/lib/locale.ts` decides language, direction, calendar, numerals, time zone and currency (set once by `setup.sh --locale`). Never hardcode a direction, a BCP-47 tag, a numbering system or a calendar; read the profile.
+- Strings go through `t()` / `tp()`. Numbers, dates and currency through `@/lib/format`.
+- The UI kit is written with logical Tailwind utilities (`ms- me- ps- pe- start- end- border-s border-e rounded-s rounded-e text-start text-end`) and logical overlay sides (`side="start" | "end"` on Tooltip, Popover, DropdownMenu, Sheet content). Keep new code in the same style.
+
+<!-- fa-only -->
+
+### Persian and RTL
+
+- `npm run lint:rtl` rejects physical utilities (`ml- pl- left- text-left …`) and `side="left|right"`; it runs inside `lint:all`.
 - Directional icons flip: chevrons and arrows get `rtl:rotate-180`; panel icons get `rtl:-scale-x-100`.
-- Strings go through `t()` / `tp()`. Numbers, dates and currency through `@/lib/format`. Free-text input is normalised with `@/lib/persian` and gets `dir="auto"`. Inline Latin runs (usernames, codes, phones) are wrapped in `<Ltr>`.
+- Free-text input is normalised with `@/lib/persian` and gets `dir="auto"`. Inline Latin runs (usernames, codes, phones) are wrapped in `<Ltr>`. Iranian identifiers are checked with `@/lib/validators/iran`.
+
+<!-- /fa-only -->
 
 ### UI
 

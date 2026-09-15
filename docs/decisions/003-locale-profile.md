@@ -23,3 +23,10 @@ cost for them. Now `setup.sh --locale fa|en` keeps one dictionary, deletes the o
 project has one file to add strings to and no parity to maintain. The boilerplate repository itself
 keeps both dictionaries (the parity check lives in `src/messages/index.ts`) and its CI builds, runs the
 e2e suite and exercises `setup.sh` for both languages, so either choice stays verified.
+
+`--locale en` also strips what only Persian needs: the Yekan Bakh font and its `[lang='fa']` CSS,
+`src/lib/persian.ts`, `src/lib/validators/iran.ts`, `docs/rtl-fa-checklist.md`, the RTL smoke check
+(and its `lint:rtl` script) and the "Persian and RTL" rules in `AGENTS.md`. Those live between
+`fa-only` markers in the boilerplate so the script can remove them by block rather than by regex.
+Logical CSS utilities and `t()` stay in both flavours: they cost nothing in LTR and stripping them
+would fork the UI kit.

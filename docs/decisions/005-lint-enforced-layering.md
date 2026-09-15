@@ -4,7 +4,8 @@
 cannot import Next or React; actions cannot import UI or Prisma; primitives only inside
 `components/ui`) is implemented as `no-restricted-imports` rules in `eslint.config.mjs`. Physical
 direction utilities and `side="left|right"` are rejected by `scripts/rtl-smoke-check.mjs`. Both run
-in `npm run lint:all` and in CI.
+in `npm run lint:all` and in CI. The RTL script only exists in Persian projects; `setup.sh --locale en`
+removes it, since an LTR-only app gains nothing from the rule.
 
 **Why.** Rules that live only in a markdown file decay, especially when most code is written by agents
 that read the file once. A red squiggle at the import line is the cheapest possible feedback and it is

@@ -104,6 +104,13 @@ jobs:
           cd /tmp/smoke
           ./setup.sh smoke-${{ matrix.locale }} --locale ${{ matrix.locale }}
           test ! -f src/messages/$([ "${{ matrix.locale }}" = fa ] && echo en || echo fa).ts
+          ! grep -rq 'fa-only' AGENTS.md src/app/globals.css
+          if [ "${{ matrix.locale }}" = en ]; then
+            test ! -d src/app/fonts && test ! -f scripts/rtl-smoke-check.mjs
+            ! grep -q 'lint:rtl' package.json
+          else
+            test -f src/app/fonts/YekanBakh-VF.woff2 && grep -q 'lint:rtl' package.json
+          fi
       - name: Verify the generated project
         working-directory: /tmp/smoke
         env:

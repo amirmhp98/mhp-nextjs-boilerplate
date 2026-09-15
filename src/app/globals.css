@@ -309,6 +309,7 @@
   }
 }
 
+/* fa-only:start */
 /* ───────────────────────────────────────────────────────────────────────────
    Locale atmosphere. <html lang> and <html dir> come from src/lib/locale.ts.
    Persian: Yekan Bakh, slightly larger small text, roomier line-height, no
@@ -351,3 +352,4 @@
 [lang='fa'] table {
   font-variant-numeric: tabular-nums;
 }
+/* fa-only:end */

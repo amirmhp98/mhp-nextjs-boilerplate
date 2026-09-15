@@ -122,8 +122,9 @@ a new one in the same shape; `AGENTS.md` walks through the steps.
 | `en`           | LTR       | `en-US`  | Gregorian | Latin digits   | `UTC`         | USD                  |
 
 `setup.sh --locale fa|en` picks one: it keeps that dictionary in `src/messages/`, deletes the other, and
-writes the profile into `src/lib/locale.ts`. From then on there is one language and one file to add
-strings to. `<html lang dir>`, the `DirectionProvider`, the font, Playwright's browser locale, every
+writes the profile into `src/lib/locale.ts`. `--locale en` also removes the Persian-only parts: the font,
+the input normaliser, the Iranian validators, the RTL checklist, the RTL lint and the RTL rules in
+`AGENTS.md`. From then on there is one language and one file to add strings to. `<html lang dir>`, the `DirectionProvider`, the font, Playwright's browser locale, every
 formatter and every `t()` string follow the profile. Rules that keep this working (logical utilities,
 `side="start|end"`, `t()` for all strings, `<Ltr>` for inline Latin) are in `AGENTS.md` and enforced by
 `npm run lint:rtl`.
@@ -150,8 +151,8 @@ After `./setup.sh`, the project is yours. A guide to the parts that are examples
 | `src/app/(app)/admin/users/*`, `services/user.service.ts`, `actions/user.actions.ts` | **Keep.** Working admin user management; most apps need it. Also the reference pattern.                                                      |
 | `src/app/(app)/components/page.tsx`                                                  | **Keep for reference**, or delete when you have your own pages. It is the visual regression surface for both directions and is behind login. |
 | `src/app/(app)/page.tsx`                                                             | **Replace.** Placeholder dashboard.                                                                                                          |
-| `src/lib/validators/iran.ts`, `src/lib/persian.ts`                                   | Keep if you handle Iranian identifiers or Persian input; otherwise delete along with their tests.                                            |
-| `docs/rtl-fa-checklist.md`                                                           | Persian-language RTL review checklist. Keep for `fa` projects; delete for `en`.                                                              |
+| `src/lib/validators/iran.ts`, `src/lib/persian.ts`                                   | Keep if you handle Iranian identifiers or Persian input; otherwise delete along with their tests. (`--locale en` already removed them.)      |
+| `docs/rtl-fa-checklist.md`                                                           | Persian-language RTL review checklist. (`--locale en` already removed it.)                                                                   |
 | `docs/decisions/*`                                                                   | Keep; add your own as you diverge.                                                                                                           |
 | `.claude/skills/*`                                                                   | Keep if you use Claude Code; otherwise delete `.claude/` entirely.                                                                           |
 | Default admin `admin` / `admin123`                                                   | **Change on first login.** `prisma/seed.ts` reads `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` if you want different defaults.              |
@@ -169,7 +170,7 @@ After `./setup.sh`, the project is yours. A guide to the parts that are examples
 | `apt-get` fails inside `docker build`                                       | Uncomment one of the Debian mirrors at the top of the `Dockerfile`.                                                                                              |
 | A page renders a raw key like `invoices.title`                              | The key is missing from the dictionary. Development also logs `[t] missing message key`.                                                                         |
 | ESLint: "import of `@/services/...` is restricted"                          | Components and client islands may not touch services or Prisma. Read through a server `page.tsx` and pass data down, or call a server action.                    |
-| `npm run lint:rtl` rejects `ml-`, `pl-`, `left-`, `side="left"`             | Use logical utilities (`ms-`, `ps-`, `start-`) and `side="start                                                                                                  | end"` so the layout works in both directions. |
+| `npm run lint:rtl` rejects `ml-`, `pl-`, `left-`, `side="left"`             | Use logical utilities (`ms-`, `ps-`, `start-`) and `side="start \| end"` so the layout works in both directions.                                                 |
 
 ## Deployment
 
