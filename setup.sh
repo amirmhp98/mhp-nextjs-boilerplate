@@ -10,10 +10,14 @@ set -euo pipefail
 #   2. keeps one language: the chosen dictionary stays, the other is deleted
 #   3. for `en`, removes the Persian-only parts (font, normaliser, Iranian
 #      validators, RTL lint, RTL checklist and RTL rules in AGENTS.md)
-#   4. drops the boilerplate's git history and issue tracker
-#   5. creates .env, installs dependencies, generates the Prisma client
-#   6. makes the first commit
+#   4. rewrites README.md and .github/workflows/ci.yml for a project: the
+#      template-only sections go, the second locale leaves the CI matrix
+#   5. drops the boilerplate's git history and issue tracker
+#   6. creates .env, installs dependencies, generates the Prisma client
+#   7. makes the first commit and deletes itself
 # Safe to run only once; it refuses to run on an already-initialised project.
+# Left on purpose for the first agent session: the placeholders in docs/PRD.md,
+# the README intro and APP_DESCRIPTION (see AGENTS.md "Before the first feature").
 
 BOLD='\033[1m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; YELLOW='\033[0;33m'; NC='\033[0m'
 say()  { echo -e "${CYAN}$*${NC}"; }
@@ -94,9 +98,9 @@ ok "Language: $LOCALE (single dictionary at src/messages/$LOCALE.ts)"
 # `en` deletes the blocks (and the Persian-only files); `fa` just drops the markers.
 MARKED_FILES=(AGENTS.md src/app/globals.css)
 
-# strip_fa_block <file> <start-marker> <end-marker>: delete from the start marker
+# strip_block <file> <start-marker> <end-marker>: delete from the start marker
 # line through the end marker line, plus one following blank line.
-strip_fa_block() {
+strip_block() {
   START="$2" END="$3" perl -0pi -e \
     's/^[ \t]*\Q$ENV{START}\E[ \t]*\n.*?^[ \t]*\Q$ENV{END}\E[ \t]*\n\n?//msg' "$1"
 }
@@ -115,8 +119,8 @@ if [[ "$LOCALE" == "en" ]]; then
     echo "Error: could not remove the Persian font from src/app/layout.tsx"; exit 1
   fi
 
-  strip_fa_block AGENTS.md '<!-- fa-only -->' '<!-- /fa-only -->'
-  strip_fa_block src/app/globals.css '/* fa-only:start */' '/* fa-only:end */'
+  strip_block AGENTS.md '<!-- fa-only -->' '<!-- /fa-only -->'
+  strip_block src/app/globals.css '/* fa-only:start */' '/* fa-only:end */'
 
   # lint:all runs without the RTL check.
   node -e '
@@ -129,6 +133,7 @@ if [[ "$LOCALE" == "en" ]]; then
 
   # Prose that mentions the removed parts.
   perl -ni -e 'print unless /^\s+(persian\.ts|validators\/)\s/' AGENTS.md
+  perl -ni -e 'print unless /\@\/lib\/persian|validators\/iran/' AGENTS.md
   perl -pi -e 's/, rtl-smoke-check\.mjs//; s/ESLint \+ RTL check \+/ESLint +/; s/ESLint, RTL check, typecheck/ESLint, typecheck/' AGENTS.md
   perl -ni -e 'print unless /validators\/iran\.ts|rtl-fa-checklist\.md|`npm run lint:rtl` rejects/' README.md
   perl -0pi -e 's/format, persian, validators, validations/format, validations/; s/ · rtl-smoke-check\.mjs//; s/, then `npm run lint:rtl` to catch physical utilities\././; s/`npm run lint` · `lint:rtl` · `typecheck`/`npm run lint` · `typecheck`/; s/ESLint · logical-direction and UI-boundary check · `tsc`/ESLint · `tsc`/; s/ and enforced by\s+`npm run lint:rtl`\././' README.md
@@ -145,6 +150,29 @@ else
   perl -ni -e 'print unless /^\s*(<!-- \/?fa-only -->|\/\* fa-only:(start|end) \*\/)\s*$/' "${MARKED_FILES[@]}"
   ok "Persian-only blocks kept, markers dropped"
 fi
+
+# ─── Project docs and CI ──────────────────────────────────────────────────
+# README.md: sections between `<!-- boilerplate-only -->` markers describe the
+# template and go; the block between `<!-- project-only` / `/project-only -->`
+# is the project's intro and quick start, commented out until now.
+say "Rewriting README.md and CI for a project..."
+strip_block README.md '<!-- boilerplate-only -->' '<!-- /boilerplate-only -->'
+perl -ni -e 'print unless /^(<!-- project-only|\/project-only -->)\s*$/' README.md
+OTHER="$OTHER" perl -ni -e 'print unless /^\| `$ENV{OTHER}`\s/' README.md
+if grep -q 'boilerplate-only\|project-only\|setup\.sh' README.md; then
+  echo "Error: template-only text survived in README.md"; exit 1
+fi
+ok "README.md describes the project (intro to be written in the first agent session)"
+
+# ci.yml: the blocks that build and test the second locale, and the job that
+# smoke-tests this script, are marked `# boilerplate-only:start/end`.
+CI=.github/workflows/ci.yml
+strip_block "$CI" '# boilerplate-only:start' '# boilerplate-only:end'
+perl -pi -e 's/ \(\$\{\{ matrix\.locale \}\}\)//; s/playwright-report-\$\{\{ matrix\.locale \}\}/playwright-report/' "$CI"
+if grep -q 'matrix\|boilerplate-only\|setup-smoke' "$CI"; then
+  echo "Error: could not reduce $CI to one locale"; exit 1
+fi
+ok "CI runs one locale and no longer smoke-tests setup.sh"
 
 # ─── Fresh history ────────────────────────────────────────────────────────
 say "Resetting repository state..."
@@ -177,9 +205,12 @@ fi
 # bd init appends a section to AGENTS.md / CLAUDE.md, and the edits above may leave
 # double blank lines or misaligned tables; keep everything Prettier-clean.
 npx prettier --write AGENTS.md CLAUDE.md README.md package.json src/messages/index.ts src/lib/locale.ts \
-  src/app/layout.tsx src/app/globals.css >/dev/null 2>&1 || true
+  src/app/layout.tsx src/app/globals.css .github/workflows/ci.yml >/dev/null 2>&1 || true
 
 # ─── First commit ─────────────────────────────────────────────────────────
+# This script has done its job; a project does not carry it (bash keeps
+# executing the already-open file).
+rm -f setup.sh
 git add -A
 git -c user.name="${GIT_AUTHOR_NAME:-setup}" -c user.email="${GIT_AUTHOR_EMAIL:-setup@localhost}" \
   commit -q -m "Initial commit from boilerplate"
@@ -194,4 +225,6 @@ echo "  3. npm run db:deploy    # apply migrations"
 echo "  4. npm run db:seed      # create admin / admin123"
 echo "  5. npm run dev"
 echo ""
-echo "Then open CLAUDE.md / AGENTS.md before asking an agent to build features."
+echo "Then open your coding agent in the project root. While docs/PRD.md still holds its"
+echo "placeholders it will ask what the product is and write that down before building"
+echo "anything (AGENTS.md > Before the first feature)."

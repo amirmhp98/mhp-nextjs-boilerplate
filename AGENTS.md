@@ -14,6 +14,50 @@ making product decisions. `docs/decisions/` records why the big choices were mad
 Framework docs matching the installed Next.js version are bundled at
 `node_modules/next/dist/docs/`. Prefer them over training data.
 
+## Before the first feature
+
+While `docs/PRD.md` › _What it is_ still holds its placeholder comment, the product is not defined and
+the docs still describe the template. Do not scaffold, model or build anything yet. The first session
+does this instead:
+
+1. **Get the requirements from the user**, in their words: what the product does and for whom; the
+   main entities and how they relate; who may do what (are `ADMIN` / `USER` enough?); external
+   systems (email, SMS, payment, files, other APIs); what must exist for a first release.
+2. **Match them against "What ships, what does not" below.** Name every gap before building it;
+   a gap that changes a rule gets a note in `docs/decisions/`.
+3. **Write the product down** so nothing still reads as the template: fill _What it is_, _Users_,
+   _Data model_ (planned) and _Roadmap_ in `docs/PRD.md`; replace the placeholder paragraph at the top
+   of `README.md`; set `APP_DESCRIPTION` in `src/lib/app-config.ts`.
+4. **Remove what the product will not use.** Keep the Users module: it is the reference pattern
+   and working admin user management. Remind the user to change the seeded admin password
+   (`admin` / `admin123`).
+   - the placeholder dashboard `src/app/(app)/page.tsx` — replace it
+   - the gallery `src/app/(app)/components/page.tsx` — keep only as a reference
+   - `@/lib/persian` and `@/lib/validators/iran` with their tests — if no Persian input or Iranian identifiers are handled
+   - `.claude/` — if Claude Code is not used
+5. **Delete this section.** From here on the PRD is the product and the rest of this file is the
+   engineering contract.
+
+## What ships, what does not
+
+Match a spec against this table before designing. "Not included" means it does not exist here in
+any generic form; the last column says where it would go so the layering stays intact.
+
+| Area          | Included                                                                                                                                                                              | Not included → where it would go                                                                                                                                              |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auth          | Username + password, httpOnly cookie sessions with hashed tokens (`@/lib/auth`, `auth.service.ts`), per-username login throttle (in-memory, one replica), `SKIP_AUTH` for UI-only dev | OAuth / SSO / OTP / magic links, self-service password reset, "remember me", Redis throttle → `auth.service.ts` plus a provider service under `services/`                     |
+| Authorisation | Two roles `ADMIN` / `USER` (`UserRole` enum), `requireAuth()` / `requireAdmin()`; the admin layout and every admin page guard themselves                                              | Permissions, per-record ownership, more roles → extend the enum, add `requireRole()` to `@/lib/auth`, put ownership checks in services                                        |
+| Users         | Admin list / create / edit / activate / deactivate / reset password; deactivation and reset revoke sessions; no paging (one `findMany`)                                               | Self-registration, profile page, avatars, paging or search → a module in the Users shape; paging is added to the service and the table together                               |
+| Data          | Prisma 6 + PostgreSQL, committed migrations, seed, `prismaMock` and factories for unit tests, `ServiceError` for expected failures                                                    | Soft delete, audit log, multi-tenancy, full-text search, transactions helpers → schema + services per module; nothing generic exists                                          |
+| UI            | Local shadcn kit behind one barrel, app shell (sidebar, header, theme toggle, Toaster), forms via `react-hook-form` + `FormField`, `<Ltr>`, `/components` gallery                     | Server-side data tables (paging, sorting, filtering), charts, rich text, file pickers, drag and drop → a component under `components/ui/`, exported from the barrel           |
+| Locale        | One profile: language, direction, calendar, numerals, time zone, currency; `t()` / `tp()` dictionary; `@/lib/format` for numbers, dates, currency, relative time                      | Runtime language switching, per-user locale, translation management → out of scope by design (decision 003)                                                                   |
+| Files, email  | —                                                                                                                                                                                     | Upload / storage, email, SMS, push → one service per provider under `services/`, keys through `env.ts`, called from actions or route handlers, never from components          |
+| Background    | —                                                                                                                                                                                     | Cron, queues, scheduled jobs, inbound webhooks → route handler under `app/api/` (inbound) or an external scheduler calling one (outbound); long work stays out of the request |
+| API           | `/api/health`; all mutations are server actions returning `ActionResult`                                                                                                              | REST / GraphQL for external clients, API keys, CORS → route handlers under `app/api/` with their own auth (sessions are cookie-only)                                          |
+| Public pages  | `/login` only (`PUBLIC_ROUTES` in `src/proxy.ts`)                                                                                                                                     | Landing / marketing / public content → a route group outside `(app)` and its path added to `PUBLIC_ROUTES`                                                                    |
+| Ops           | Docker image + compose, CI (lint, unit, build, e2e, image), Renovate, pino logging, security headers, health probe                                                                    | Error tracking, metrics, feature flags → `@/lib/logger` is the seam; config through `env.ts`                                                                                  |
+| Persian       | `@/lib/persian` input normalisation, `@/lib/validators/iran` (national ID, mobile, SHEBA, card, postal code), Persian digits and Jalali dates through the profile                     | —                                                                                                                                                                             |
+
 ## Layout of the code
 
 ```

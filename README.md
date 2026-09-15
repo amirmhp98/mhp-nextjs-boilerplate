@@ -1,9 +1,16 @@
 # {{PROJECT_NAME}}
 
+<!-- boilerplate-only -->
+
 Locale-profile-driven web application boilerplate: Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL.
 One language per project, chosen at setup: Persian / RTL / Jalali (default) or English / LTR / Gregorian.
 Built to be driven by AI coding agents: the architecture is enforced by lint, one complete reference
 module shows the pattern, a scaffold copies it, and the agent configuration ships with the repo.
+
+`setup.sh` turns a clone into a project: it picks the language, rewrites this README, `AGENTS.md`,
+`.github/workflows/ci.yml` and every `{{PROJECT_NAME}}` for that project, drops the template's git
+history, and deletes itself. Sections between `boilerplate-only` markers are removed; the block
+between `project-only` markers takes their place.
 
 ## Quick start
 
@@ -17,6 +24,30 @@ npm run db:seed           # admin / admin123
 npm run dev               # http://localhost:3000
 ```
 
+<!-- /boilerplate-only -->
+<!-- project-only
+
+_What this product does and for whom goes here: the "What it is" paragraph from `docs/PRD.md`.
+It is written in the first agent session (`AGENTS.md` › Before the first feature)._
+
+Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL. One locale profile (see
+"Locale and direction" below). Rules for coding agents are in `AGENTS.md` and `CLAUDE.md`.
+
+## Quick start
+
+Requirements: Node LTS (`.nvmrc`), Docker (for the local database) or any PostgreSQL 14+.
+
+```bash
+cp .env.example .env      # DATABASE_URL points at the docker-compose Postgres
+npm ci && npm run db:generate
+npm run db:up             # Postgres in Docker (or edit DATABASE_URL in .env)
+npm run db:deploy         # apply migrations
+npm run db:seed           # admin / admin123
+npm run dev               # http://localhost:3000
+```
+
+/project-only -->
+
 Change the default admin password after the first login (Admin → Users → reset password).
 
 **No database?** Set `SKIP_AUTH=true` in `.env` to skip login and run UI-only (development only).
@@ -26,7 +57,10 @@ Every environment variable is documented in `.env.example` and validated at boot
 ## Your first feature
 
 Open your coding agent in the project root (Claude Code reads `CLAUDE.md`; other agents read
-`AGENTS.md`) and describe the feature in product terms:
+`AGENTS.md`). While `docs/PRD.md` still holds its placeholders the agent will first ask what the
+product is, write the answers into the PRD, this README and `src/lib/app-config.ts`, and match your
+requirements against what the repository ships (`AGENTS.md` › "Before the first feature" and
+"What ships, what does not"). Then describe the feature in product terms:
 
 > Add an **invoices** module. An invoice has a number, a customer name, an amount, a status
 > (draft / sent / paid) and a due date. Admins create and edit invoices; every signed-in user can
@@ -116,22 +150,30 @@ a new one in the same shape; `AGENTS.md` walks through the steps.
 
 ## Locale and direction
 
-| Profile        | Direction | Intl tag | Calendar  | Numerals       | Time zone     | Currency             |
-| -------------- | --------- | -------- | --------- | -------------- | ------------- | -------------------- |
-| `fa` (default) | RTL       | `fa-IR`  | Jalali    | Persian digits | `Asia/Tehran` | IRR (shown as toman) |
-| `en`           | LTR       | `en-US`  | Gregorian | Latin digits   | `UTC`         | USD                  |
+One locale profile per project, set once in `src/lib/locale.ts`:
 
-`setup.sh --locale fa|en` picks one: it keeps that dictionary in `src/messages/`, deletes the other, and
-writes the profile into `src/lib/locale.ts`. `--locale en` also removes the Persian-only parts: the font,
-the input normaliser, the Iranian validators, the RTL checklist, the RTL lint and the RTL rules in
-`AGENTS.md`. From then on there is one language and one file to add strings to. `<html lang dir>`, the `DirectionProvider`, the font, Playwright's browser locale, every
-formatter and every `t()` string follow the profile. Rules that keep this working (logical utilities,
-`side="start|end"`, `t()` for all strings, `<Ltr>` for inline Latin) are in `AGENTS.md` and enforced by
-`npm run lint:rtl`.
+| Profile | Direction | Intl tag | Calendar  | Numerals       | Time zone     | Currency             |
+| ------- | --------- | -------- | --------- | -------------- | ------------- | -------------------- |
+| `fa`    | RTL       | `fa-IR`  | Jalali    | Persian digits | `Asia/Tehran` | IRR (shown as toman) |
+| `en`    | LTR       | `en-US`  | Gregorian | Latin digits   | `UTC`         | USD                  |
+
+<!-- boilerplate-only -->
+
+`setup.sh --locale fa|en` picks one (default `fa`): it keeps that dictionary in `src/messages/`, deletes
+the other, and writes the profile into `src/lib/locale.ts`. `--locale en` also removes the Persian-only
+parts: the font, the input normaliser, the Iranian validators, the RTL checklist, the RTL lint and the RTL
+rules in `AGENTS.md`. From then on there is one language and one file to add strings to.
 
 The boilerplate repository itself carries both dictionaries and builds and tests both profiles in CI
-(`NEXT_PUBLIC_LOCALE` overrides the profile there); that override is removed from a project's
-`.env.example` by `setup.sh`.
+(`NEXT_PUBLIC_LOCALE` overrides the profile there); `setup.sh` removes that override from `.env.example`
+and the second locale from the CI matrix.
+
+<!-- /boilerplate-only -->
+
+`<html lang dir>`, the `DirectionProvider`, the font, Playwright's browser locale, every formatter and
+every `t()` string follow the profile. Rules that keep this working (logical utilities,
+`side="start|end"`, `t()` for all strings, `<Ltr>` for inline Latin) are in `AGENTS.md` and enforced by
+`npm run lint:rtl`.
 
 ## Working with AI agents
 
@@ -142,9 +184,12 @@ The boilerplate repository itself carries both dictionaries and builds and tests
 - Framework docs matching the installed Next.js version are in `node_modules/next/dist/docs/`.
 - `docs/decisions/` explains why the big choices were made, so nobody has to re-derive them.
 
+<!-- boilerplate-only -->
+
 ## What to keep, what to delete
 
-After `./setup.sh`, the project is yours. A guide to the parts that are examples versus infrastructure:
+After `./setup.sh`, the project is yours. The agent walks through this list in its first session
+(`AGENTS.md` › "Before the first feature"); here it is for humans:
 
 | Path                                                                                 | Keep or delete?                                                                                                                              |
 | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -156,6 +201,8 @@ After `./setup.sh`, the project is yours. A guide to the parts that are examples
 | `docs/decisions/*`                                                                   | Keep; add your own as you diverge.                                                                                                           |
 | `.claude/skills/*`                                                                   | Keep if you use Claude Code; otherwise delete `.claude/` entirely.                                                                           |
 | Default admin `admin` / `admin123`                                                   | **Change on first login.** `prisma/seed.ts` reads `SEED_ADMIN_USERNAME` / `SEED_ADMIN_PASSWORD` if you want different defaults.              |
+
+<!-- /boilerplate-only -->
 
 ## Troubleshooting
 
@@ -180,11 +227,17 @@ and starts the server. The image exposes `/api/health` for orchestrator probes. 
 service, and a Docker image build on every push and pull request. Renovate (`renovate.json`) groups
 dependency updates weekly.
 
+<!-- boilerplate-only -->
+
 ## Placeholders
 
 `setup.sh` replaces `{{PROJECT_NAME}}` everywhere it appears (package.json, docker-compose.yml,
-`src/lib/app-config.ts`, LICENSE, CLAUDE.md, AGENTS.md, README.md, docs/PRD.md), then removes the
-boilerplate's git history and makes the first commit.
+`src/lib/app-config.ts`, LICENSE, CLAUDE.md, AGENTS.md, README.md, docs/PRD.md), rewrites the
+template-only parts of README.md and `.github/workflows/ci.yml`, removes the boilerplate's git history,
+makes the first commit and deletes itself. `docs/PRD.md`, the README intro and `APP_DESCRIPTION` keep
+their placeholders on purpose: the first agent session fills them from the product's requirements.
+
+<!-- /boilerplate-only -->
 
 ## License
 

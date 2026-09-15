@@ -7,6 +7,9 @@ This file adds the workflow Claude Code follows and the tooling it should reach 
 
 ## Workflow
 
+- If `docs/PRD.md` › _What it is_ still holds its placeholder comment, the product is not defined yet:
+  follow `AGENTS.md` › "Before the first feature" (requirements → PRD, README intro, `APP_DESCRIPTION`
+  → match against "What ships, what does not") before scaffolding or building anything.
 - Keep changes scoped to what was asked. If you discover related work, mention it rather than doing it.
 - Before reporting done: `npm run lint:all`, `npm run test`, `npm run build`; exercise the change in the
   browser (Playwright MCP) or add an e2e spec. Say what you tested.
@@ -55,6 +58,8 @@ Each vendored skill has a `SOURCE.md` with upstream repo, commit and license, an
 ### Decision flow
 
 ```
+PRD still has its placeholder?     → AGENTS.md "Before the first feature" — define the product first
+Spec mentions something new?       → AGENTS.md "What ships, what does not" — is it here, and where would it go
 New feature?                       → npm run new:module <name>, then follow AGENTS.md "How a feature is built"
 Touching a route or layout?        → next-best-practices, then bundled Next docs
 Touching the schema or a query?    → Prisma MCP, supabase-postgres-best-practices
