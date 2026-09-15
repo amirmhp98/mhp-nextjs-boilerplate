@@ -11,7 +11,7 @@ import {
     // Tabs
     Tabs, TabsList, TabsTrigger, TabsContent,
     // Data display
-    Badge, badgeVariants,
+    Badge,
     Avatar, AvatarFallback, AvatarImage,
     Skeleton, Spinner, Progress,
     Alert, AlertTitle, AlertDescription,
@@ -41,7 +41,7 @@ import { formatDate } from '@/lib/format';
 import { locale } from '@/lib/locale';
 import {
     Palette, Type, Square, AlignLeft, Bell, Database, Navigation,
-    Layers, LayoutGrid, BarChart2, Image, Settings, ChevronRight,
+    Layers, LayoutGrid, BarChart2, Settings, ChevronRight,
     BarChart3, FileImage, HeartPulse, MessageCircle, Newspaper,
     Search, Plus, Trash2, Edit, Download, Upload, Share2, Star,
     Heart, Eye, Users, FileText, TrendingUp, Clock, Calendar as CalendarIcon,

@@ -15,7 +15,7 @@ Locale-profile-driven web application boilerplate built with Next.js 16, React 1
 npx prisma migrate dev --name init
 
 # 4. Seed default admin user
-npx tsx prisma/seed.ts
+npm run db:seed
 
 # 5. Start development server
 npm run dev
@@ -78,12 +78,15 @@ docs/            # PRD and checklists
 | `npm run test` | Run unit tests (Vitest) |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run test:e2e` | Run end-to-end tests (Playwright) |
+| `npm run db:seed` | Seed the default admin user |
+| `npm run deps:update` | Bump all dependencies to latest minor/patch and install |
+| `npm run deps:update:major` | Interactive picker for major upgrades |
 
 ## Features
 
 - **Locale profile** — One config (`src/lib/locale.ts`) sets language, direction, calendar, numerals, time zone, and currency. RTL Persian with the Jalali calendar and Yekan Bakh by default; LTR English with the Gregorian calendar via `NEXT_PUBLIC_LOCALE=en`
 - **Dark & Light mode** — Theme toggle with localStorage persistence, no flash
-- **Authentication** — Cookie-based session auth with admin/analyst roles
+- **Authentication** — Cookie-based session auth with `ADMIN` / `USER` roles
 - **Component library** — Battle-tested UI components at `/components`
 - **Security headers** — X-Content-Type-Options, X-Frame-Options, Referrer-Policy
 - **Docker ready** — Dockerfile with standalone output, docker-compose template
@@ -105,6 +108,11 @@ Everything locale-related reads one profile from `src/lib/locale.ts`:
 - **Lint guard** — `npm run lint:rtl` (part of `npm run lint:all`) fails on physical utilities (`ml/mr/pl/pr/left-/right-/border-l/r/rounded-l/r/text-left/right`), physical `side="left|right"` props, and UI primitives imported outside `src/components/ui/**`. ESLint enforces the same import boundary.
 - **Verification** — `/components` is the visual regression surface for both directions; `e2e/locale.spec.ts` asserts `lang`/`dir`, computed direction, no horizontal overflow, and sidebar placement for the active profile.
 
+## Keeping dependencies current
+
+- **Node**: `.nvmrc` is `lts/*` and the Dockerfile uses `node:lts-slim`, so both follow the current LTS line automatically. `engines.node` is `>=22`.
+- **Packages**: `renovate.json` is included. Enable [Renovate](https://docs.renovatebot.com/) on the repo (GitHub app or GitLab bot) and it opens a single weekly PR for minor/patch bumps (auto-merged when checks pass) and one PR per major for review. Without a bot, run `npm run deps:update` periodically.
+
 ## Placeholders
 
 The following placeholders are replaced by `setup.sh`:
@@ -119,4 +127,4 @@ The following placeholders are replaced by `setup.sh`:
 - **Server Actions** are thin wrappers calling services
 - **UI imports** always go through `@/components/UiComponents` or `@/components/ui/*`
 - **Path alias** `@/*` maps to `./src/*` — no deep relative imports
-- **Database** — new tables use `v2_` prefix; never force-reset
+- **Database** — never `prisma db push --force-reset`; migrations via `prisma migrate dev`

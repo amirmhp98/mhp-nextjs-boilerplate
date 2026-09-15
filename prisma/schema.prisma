@@ -7,43 +7,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum v2_UserRole {
+enum UserRole {
   ADMIN
-  ANALYST
+  USER
 }
 
 // ─── USER ──────────────────────────────────────────
-model v2_User {
+model User {
   id           String      @id @default(cuid())
   username     String      @unique
   passwordHash String
   fullName     String
-  role         v2_UserRole @default(ANALYST)
+  role         UserRole @default(USER)
   isActive     Boolean     @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
-  sessions v2_Session[]
+  sessions Session[]
 
-  @@index([username])
   @@index([role])
-  @@map("v2_users")
+  @@map("users")
 }
 
 // ─── SESSION ───────────────────────────────────────
-model v2_Session {
+model Session {
   id        String   @id @default(cuid())
   userId    String
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      v2_User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
   @@index([userId])
   @@index([expiresAt])
-  @@map("v2_sessions")
+  @@map("sessions")
 }
 
 // --- Add your domain models below ---

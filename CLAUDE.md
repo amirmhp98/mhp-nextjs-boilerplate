@@ -1,74 +1,23 @@
 # CLAUDE.md - {{PROJECT_NAME}}
 
-## Beads-First Workflow (MANDATORY)
+## Workflow
 
-**Every task MUST go through beads (`bd`). No exceptions. No feature, fix, or refactor may happen without a tracked beads issue.**
+- Keep changes scoped to what was asked. If you discover related work, mention it rather than doing it.
+- Before reporting done: `npm run build` (includes TypeScript checks) and `npm run lint:all` for non-trivial changes. Say what you tested.
+- `docs/PRD.md` describes what the product is and does. When a change adds a route, module, or user-visible behaviour, update it in a sentence or two — it is a living reference, not a changelog.
 
-When the user asks you to do anything (feature, bugfix, refactor, chore), follow this exact sequence:
+### Optional: issue tracking with beads
 
-### 1. Define in Beads
-- Search existing issues first: `bd search "<keywords>"` or `bd list --status=open`
-- If an existing issue matches, use it. Otherwise create one:
-  ```bash
-  bd create --title="<concise title>" --description="<what and why>" --type=<bug|feature|task|chore> --priority=<0-4>
-  ```
-- If the user references a specific issue ID, use `bd show <id>` to understand it first.
+If the project uses [beads](https://github.com/steveyegge/beads) (a `.beads/` directory exists), track work there:
 
-### 2. Claim and Start
-- Claim the issue: `bd update <id> --claim`
-- This marks it `in_progress` and assigns it to you.
-
-### 3. Implement
-- Do the work. If you discover related work, create linked issues:
-  ```bash
-  bd create --title="..." --description="..." --type=task --deps discovered-from:<parent-id>
-  ```
-- Do NOT scope-creep the current issue.
-
-### 4. Verify
-- Run `npm run build` (covers TypeScript checks).
-- Run `npm run lint:all` for non-trivial changes.
-- Test the feature manually or describe what you tested.
-
-### 5. Ask Before Closing (CRITICAL)
-- **NEVER close an issue without explicit user approval.**
-- After implementation and verification, report to the user:
-  - What was done
-  - What was tested
-  - The beads issue ID
-- Wait for the user to say it can be closed.
-- Only then: `bd close <id> --reason="<summary>"`
-
-### 6. Update PRD (on close)
-- After an issue is closed, check if the change affects product scope (new feature, changed behavior, new module, new route, changed data model).
-- If yes, update `docs/PRD.md` to reflect the change. Keep it concise — PRD is a living reference, not a changelog. Update the `Last Updated` date.
-- If no (pure bugfix, internal refactor, style change), skip this step.
-
-### Quick Reference
 ```bash
-bd ready                    # Find work with no blockers
-bd list --status=open       # All open issues
-bd show <id>                # Issue details
-bd update <id> --claim      # Claim (in_progress + assign)
-bd create --title="..." --description="..." --type=task --priority=2  # New issue
-bd close <id> --reason="..."  # Close (ONLY after user approval)
-bd search "<query>"         # Search issues
-bd prime                    # Load full workflow context
+bd ready                    # Work with no blockers
+bd create --title="..." --description="..." --type=task --priority=2
+bd update <id> --claim      # Mark in_progress
+bd close <id> --reason="..."  # Only after the user confirms
 ```
 
-### Beads Rules
-- Use `bd` for ALL task tracking. Never use TodoWrite, markdown TODOs, or external trackers.
-- Always claim before starting work.
-- Always create an issue BEFORE writing code.
-- Always ask the user before closing ANY issue, regardless of size.
-- Use `--json` flag when you need to parse output programmatically.
-- Do NOT use `bd edit` — it opens an interactive editor that blocks agents.
-
----
-
-## Product Context
-
-**`docs/PRD.md` is the single source of truth** for what this product is, how it works, and what it includes. Read it before making architectural decisions or adding features. Keep it updated (see step 6 above).
+Do not use `bd edit` (opens an interactive editor). If there is no `.beads/` directory, skip this section entirely.
 
 ---
 
@@ -87,11 +36,9 @@ bd prime                    # Load full workflow context
 - **UI import boundary**: app code imports UI only from `@/components/UiComponents` or `@/components/ui/*`. `@radix-ui/*`, `sonner`, `react-day-picker`, `input-otp` may be imported inside `src/components/ui/**` only (ESLint error + `lint:rtl` failure elsewhere).
 - **Imports**: Use `@/*` path alias. Never relative paths that go more than one level up.
 
-### Database Safety
-- **NEVER** run `prisma db push --force-reset`.
-- **ALWAYS** run `prisma db pull` before schema changes to avoid dropping legacy tables.
-- New tables use `v2_` prefix only. Existing tables are untouched.
-- See `RULES.md` for full database constraints.
+### Database
+- Never run `prisma db push --force-reset`; if a migration warns about data loss, stop and review.
+- Add domain models to `prisma/schema.prisma` and create a migration with `npx prisma migrate dev --name <change>`.
 
 ### Architecture
 - **Services** (`src/services/`) hold all business logic — never put it in components or actions.
@@ -100,46 +47,19 @@ bd prime                    # Load full workflow context
 
 ---
 
-## Tooling — When to Use What
+## Tooling
 
-Use the right tool for the job. Don't wait for the user to ask — proactively reach for these when the context matches.
+Reach for these when the context matches; skip them for trivial edits.
 
-### MCP Servers
-
-| MCP | When to use |
-|-----|-------------|
-| **Context7** | Before writing code that uses **Next.js, React, Tailwind, Prisma, or any npm library** APIs. Use `resolve-library-id` → `get-library-docs` to get current docs. Especially important for: new component patterns, middleware, metadata API, Prisma schema/client changes, Tailwind v4 classes. Skip for trivial edits (typos, config tweaks, string changes). |
-| **Prisma** | When working on **database schema, migrations, or data model** questions. Use it to introspect the current schema, understand relations, or generate queries — before manually reading `schema.prisma`. |
-| **Playwright** | When the user asks to **test, verify, or interact with the running web app** in a browser. Use for visual verification, form testing, screenshot capture, and debugging UI behavior at `localhost:3000`. |
-
-### Skills (invoke via `/skill-name` or proactively via Skill tool)
-
-| Skill | When to use |
-|-------|-------------|
-| **next-best-practices** | When creating or modifying **pages, layouts, routes, server components, metadata, error boundaries, loading states, or API routes**. Invoke before implementing to get current Next.js patterns right. |
-| **shadcn** | When **adding, composing, or fixing UI components** from shadcn/ui. Use for component search, docs, and usage examples. |
-| **ui-ux-pro-max** | When making **design decisions** — color palettes, spacing, layout structure, responsive design, dark mode, RTL considerations. Use for building new pages or redesigning existing UI. |
-| **playwright-best-practices** | When **writing or fixing Playwright tests** — selectors, assertions, POM patterns, flaky test debugging, CI config. |
-| **webapp-testing** | When needing to **visually verify** the running app — take screenshots, check UI state, debug rendering issues in the browser. |
-| **supabase-postgres-best-practices** | When writing or optimizing **SQL queries, indexes, or schema design** — especially for performance-sensitive operations. |
-| **simplify** | After completing implementation — invoke `/simplify` to **review changed code** for reuse opportunities, quality issues, and efficiency improvements before reporting done. |
-
-### Decision Flow
-
-```
-About to write framework-dependent code?
-  → Context7: fetch latest docs first
-
-Touching database schema or queries?
-  → Prisma MCP for introspection
-  → supabase-postgres-best-practices for optimization
-
-Building or modifying UI?
-  → shadcn for component patterns
-  → ui-ux-pro-max for design decisions
-  → next-best-practices for page/layout structure
-
-Done implementing?
-  → simplify to review quality
-  → webapp-testing to visually verify if UI changed
-```
+| Tool | When to use |
+|------|-------------|
+| **Context7 MCP** | Before writing code against Next.js, React, Tailwind, Prisma, or any npm library API — fetch current docs first. |
+| **Prisma MCP** | Schema, migration, or data-model questions — introspect before editing `schema.prisma` by hand. |
+| **Playwright MCP** | Testing or verifying the running app in a browser at `localhost:3000`. |
+| `/next-best-practices` | Creating or modifying pages, layouts, routes, server components, metadata, error/loading states, API routes. |
+| `/shadcn` | Adding or composing shadcn/ui components. |
+| `/ui-ux-pro-max` | Design decisions — palette, spacing, layout, responsive, dark mode, RTL. |
+| `/playwright-best-practices` | Writing or fixing Playwright tests. |
+| `/webapp-testing` | Visual verification of the running app. |
+| `/supabase-postgres-best-practices` | SQL, indexes, schema performance. |
+| `/simplify` | After a non-trivial implementation, review the diff for reuse and simplification. |

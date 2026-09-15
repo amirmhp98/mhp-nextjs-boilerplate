@@ -32,7 +32,7 @@ export const getSession = cache(async (): Promise<AuthUser | null> => {
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (!token) return null;
 
-  const session = await prisma.v2_Session.findUnique({
+  const session = await prisma.session.findUnique({
     where: { token },
     include: {
       user: {
@@ -67,7 +67,7 @@ export async function requireAdmin(): Promise<AuthUser> {
 // ─── Login / Logout ────────────────────────────────
 
 export async function login(username: string, password: string): Promise<{ success: boolean; error?: string }> {
-  const user = await prisma.v2_User.findUnique({ where: { username } });
+  const user = await prisma.user.findUnique({ where: { username } });
   if (!user || !user.isActive) {
     return { success: false, error: t('auth.errors.invalidCredentials') };
   }
@@ -82,9 +82,9 @@ export async function login(username: string, password: string): Promise<{ succe
 
   // Cleanup expired sessions, create new session, update lastLogin — all independent
   await Promise.all([
-    prisma.v2_Session.deleteMany({ where: { userId: user.id, expiresAt: { lt: new Date() } } }),
-    prisma.v2_Session.create({ data: { userId: user.id, token, expiresAt } }),
-    prisma.v2_User.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }),
+    prisma.session.deleteMany({ where: { userId: user.id, expiresAt: { lt: new Date() } } }),
+    prisma.session.create({ data: { userId: user.id, token, expiresAt } }),
+    prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } }),
   ]);
 
   const cookieStore = await cookies();
@@ -103,7 +103,7 @@ export async function logout(): Promise<void> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
   if (token) {
-    await prisma.v2_Session.deleteMany({ where: { token } });
+    await prisma.session.deleteMany({ where: { token } });
     cookieStore.delete(SESSION_COOKIE);
   }
 }

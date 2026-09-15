@@ -1,10 +1,10 @@
 # Critical Rules
 
-1.  **DATABASE SAFETY - ZERO DATA LOSS:**
-    *   NEVER use `prisma db push` with `--force-reset` or any command that might drop existing tables.
-    *   Before applying any schema change, always run `prisma db pull` first to ensure the schema file reflects the current database state, preventing accidental drops of tables that Prisma doesn't know about.
-    *   If a migration warns about "Data Loss" or "Dropping tables", STOP IMMEDIATELY and review.
+1. **Database safety**
+   - Never run `prisma db push --force-reset` or any command that drops tables with data.
+   - If a migration warns about data loss, stop and review before applying.
+   - Use `prisma migrate dev` in development and `prisma migrate deploy` in production.
 
-2.  **Schema Management:**
-    *   New tables use `v2_` prefix.
-    *   The `schema.prisma` file must include ALL existing tables in the database, even if they are not used in the app. This ensures Prisma doesn't try to delete them.
+2. **Architecture**
+   - Business logic lives in `src/services/`; server actions and components stay thin.
+   - App code imports UI only from `@/components/UiComponents` or `@/components/ui/*`.

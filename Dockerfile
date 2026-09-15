@@ -1,7 +1,7 @@
 
 # syntax=docker/dockerfile:1.7
 
-FROM node:20-slim AS base
+FROM node:lts-slim AS base
 
 WORKDIR /app
 
@@ -28,7 +28,7 @@ FROM base AS builder
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
 RUN --mount=type=cache,target=/root/.npm \
-    if [ -f package-lock.json ]; then npm ci --legacy-peer-deps --prefer-offline --no-audit --no-fund; \
+    if [ -f package-lock.json ]; then npm ci --prefer-offline --no-audit --no-fund; \
     else echo "Lockfile not found." && exit 1; \
     fi
 

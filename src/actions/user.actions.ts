@@ -4,12 +4,12 @@ import { prisma } from '@/lib/prisma';
 import { requireAdmin } from '@/lib/auth';
 import { hashPassword } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
-import type { v2_UserRole } from '@prisma/client';
+import type { UserRole } from '@prisma/client';
 import { t } from '@/lib/t';
 
 export async function getUsers() {
   await requireAdmin();
-  return prisma.v2_User.findMany({
+  return prisma.user.findMany({
     orderBy: { createdAt: 'desc' },
     select: {
       id: true,
@@ -30,9 +30,9 @@ export async function createUser(data: {
   username: string;
   password: string;
   fullName: string;
-  role: v2_UserRole;
+  role: UserRole;
 }): Promise<{ success: boolean; error?: string }> {
-  const admin = await requireAdmin();
+  await requireAdmin();
 
   if (!data.username.trim() || !data.password || !data.fullName.trim()) {
     return { success: false, error: t('users.errors.allFieldsRequired') };
@@ -43,14 +43,14 @@ export async function createUser(data: {
   }
 
   // Check username uniqueness
-  const existing = await prisma.v2_User.findUnique({ where: { username: data.username.trim() } });
+  const existing = await prisma.user.findUnique({ where: { username: data.username.trim() } });
   if (existing) {
     return { success: false, error: t('users.errors.usernameTaken') };
   }
 
   const passwordHash = await hashPassword(data.password);
 
-  await prisma.v2_User.create({
+  await prisma.user.create({
     data: {
       username: data.username.trim(),
       passwordHash,
@@ -65,11 +65,11 @@ export async function createUser(data: {
 
 export async function updateUser(
   userId: string,
-  data: { fullName?: string; role?: v2_UserRole }
+  data: { fullName?: string; role?: UserRole }
 ): Promise<{ success: boolean; error?: string }> {
   const admin = await requireAdmin();
 
-  const user = await prisma.v2_User.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     return { success: false, error: t('users.errors.notFound') };
   }
@@ -79,7 +79,7 @@ export async function updateUser(
     return { success: false, error: t('users.errors.cannotChangeOwnRole') };
   }
 
-  await prisma.v2_User.update({
+  await prisma.user.update({
     where: { id: userId },
     data: {
       ...(data.fullName?.trim() && { fullName: data.fullName.trim() }),
@@ -98,19 +98,19 @@ export async function toggleUserActive(userId: string): Promise<{ success: boole
     return { success: false, error: t('users.errors.cannotDeactivateSelf') };
   }
 
-  const user = await prisma.v2_User.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     return { success: false, error: t('users.errors.notFound') };
   }
 
-  await prisma.v2_User.update({
+  await prisma.user.update({
     where: { id: userId },
     data: { isActive: !user.isActive },
   });
 
   // If deactivating, invalidate all their sessions
   if (user.isActive) {
-    await prisma.v2_Session.deleteMany({ where: { userId } });
+    await prisma.session.deleteMany({ where: { userId } });
   }
 
   revalidatePath('/admin/users');
@@ -127,19 +127,19 @@ export async function resetUserPassword(
     return { success: false, error: t('users.errors.passwordTooShort') };
   }
 
-  const user = await prisma.v2_User.findUnique({ where: { id: userId } });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
   if (!user) {
     return { success: false, error: t('users.errors.notFound') };
   }
 
   const passwordHash = await hashPassword(newPassword);
-  await prisma.v2_User.update({
+  await prisma.user.update({
     where: { id: userId },
     data: { passwordHash },
   });
 
   // Invalidate all sessions so user must re-login
-  await prisma.v2_Session.deleteMany({ where: { userId } });
+  await prisma.session.deleteMany({ where: { userId } });
 
   revalidatePath('/admin/users');
   return { success: true };

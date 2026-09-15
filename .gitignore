@@ -66,3 +66,6 @@ next-env.d.ts
 # Beads / Dolt files (added by bd init)
 .beads-credential-key
 playwright-report/
+
+# vitest cache
+.vitest/

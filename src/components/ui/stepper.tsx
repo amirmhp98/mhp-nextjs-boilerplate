@@ -1,5 +1,5 @@
 import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
+import { cva } from "class-variance-authority"
 import { Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -18,9 +18,7 @@ const stepperVariants = cva(
   }
 )
 
-export interface StepperProps
-  extends React.HTMLAttributes<HTMLDivElement>,
-  VariantProps<typeof stepperVariants> {
+export interface StepperProps extends React.HTMLAttributes<HTMLDivElement> {
   activeStep: number
   steps: {
     id: string | number
@@ -33,7 +31,7 @@ export interface StepperProps
 }
 
 const Stepper = React.forwardRef<HTMLDivElement, StepperProps>(
-  ({ className, variant, activeStep, steps, orientation = "horizontal", onStepClick, ...props }, ref) => {
+  ({ className, activeStep, steps, orientation = "horizontal", onStepClick, ...props }, ref) => {
     return (
       <div
         ref={ref}

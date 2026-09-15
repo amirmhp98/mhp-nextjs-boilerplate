@@ -37,10 +37,6 @@ find . -type f \( -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.
   -not -path "./.claude/skills/*" \
   -exec $SED_CMD "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" {} \; 2>/dev/null
 
-find . -type f \( -name "*.yml" -o -name "*.yaml" \) \
-  -not -path "./node_modules/*" \
-  -exec $SED_CMD "s/{{SERVICE_NAME}}/$SERVICE_NAME/g" {} \; 2>/dev/null
-
 # Clean up macOS sed backup files
 find . -name "*''" -delete 2>/dev/null
 
@@ -59,9 +55,9 @@ fi
 
 echo -e "\n${CYAN}Installing dependencies...${NC}"
 if [[ -f package-lock.json ]]; then
-  npm ci --legacy-peer-deps
+  npm ci
 else
-  npm install --legacy-peer-deps
+  npm install
 fi
 echo "  ✓ Dependencies installed"
 
@@ -70,15 +66,6 @@ echo "  ✓ Dependencies installed"
 echo -e "\n${CYAN}Generating Prisma client...${NC}"
 npx prisma generate
 echo "  ✓ Prisma client generated"
-
-# ─── Initialize Beads ─────────────────────────────────────────
-
-echo -e "\n${CYAN}Initializing Beads issue tracker...${NC}"
-if command -v bd &> /dev/null; then
-  bd init 2>/dev/null || echo "  ⚠ Beads init failed (you can run 'bd init' manually later)"
-else
-  echo "  ⏭ Beads CLI not found (install it to use beads issue tracking)"
-fi
 
 # ─── Initialize Git ───────────────────────────────────────────
 
@@ -98,7 +85,7 @@ echo -e "\n${BOLD}${GREEN}✅ Project '$PROJECT_NAME' is ready!${NC}\n"
 echo "Next steps:"
 echo "  1. Edit .env with your database credentials"
 echo "  2. Run: npx prisma migrate dev --name init"
-echo "  3. Run: npx tsx prisma/seed.ts"
+echo "  3. Run: npm run db:seed"
 echo "  4. Run: npm run dev"
 echo ""
 echo "Default admin credentials: admin / admin123"
