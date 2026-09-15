@@ -7,6 +7,7 @@ import { cache } from 'react';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
 import type { AuthUser } from '@/types/auth';
+import { t } from '@/lib/t';
 
 const SESSION_COOKIE = 'session';
 const SESSION_MAX_AGE_DAYS = Number(process.env.SESSION_MAX_AGE_DAYS ?? 7);
@@ -68,12 +69,12 @@ export async function requireAdmin(): Promise<AuthUser> {
 export async function login(username: string, password: string): Promise<{ success: boolean; error?: string }> {
   const user = await prisma.v2_User.findUnique({ where: { username } });
   if (!user || !user.isActive) {
-    return { success: false, error: 'نام کاربری یا رمز عبور اشتباه است' };
+    return { success: false, error: t('auth.errors.invalidCredentials') };
   }
 
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) {
-    return { success: false, error: 'نام کاربری یا رمز عبور اشتباه است' };
+    return { success: false, error: t('auth.errors.invalidCredentials') };
   }
 
   const token = randomBytes(32).toString('hex');

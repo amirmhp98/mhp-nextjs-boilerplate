@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Eye, EyeOff, LogIn } from 'lucide-react';
 import { useState } from 'react';
 import { Input, Button } from '@/components/UiComponents';
+import { t } from '@/lib/t';
 
 export default function LoginPage() {
   const [state, formAction, isPending] = useActionState(loginAction, null);
@@ -16,15 +17,15 @@ export default function LoginPage() {
       <div className="w-full max-w-sm space-y-8">
         {/* Logo */}
         <div className="flex flex-col items-center gap-4">
-          <Image src="/logo.png" alt="Logo" width={140} height={48} className="h-10 w-auto" priority />
-          <h1 className="text-lg font-semibold text-foreground">ورود به سامانه</h1>
+          <Image src="/logo.png" alt={t('shell.logoAlt')} width={140} height={48} className="h-10 w-auto" priority />
+          <h1 className="text-lg font-semibold text-foreground">{t('auth.login.title')}</h1>
         </div>
 
         {/* Form */}
         <form action={formAction} className="space-y-5">
           <div className="space-y-2">
             <label htmlFor="username" className="text-sm font-medium text-foreground">
-              نام کاربری
+              {t('auth.login.username')}
             </label>
             <Input
               id="username"
@@ -33,13 +34,13 @@ export default function LoginPage() {
               required
               autoComplete="username"
               autoFocus
-              placeholder="نام کاربری خود را وارد کنید"
+              placeholder={t('auth.login.usernamePlaceholder')}
             />
           </div>
 
           <div className="space-y-2">
             <label htmlFor="password" className="text-sm font-medium text-foreground">
-              رمز عبور
+              {t('auth.login.password')}
             </label>
             <div className="relative">
               <Input
@@ -49,13 +50,14 @@ export default function LoginPage() {
                 required
                 autoComplete="current-password"
                 className="pe-10"
-                placeholder="رمز عبور خود را وارد کنید"
+                placeholder={t('auth.login.passwordPlaceholder')}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 tabIndex={-1}
+                aria-label={showPassword ? t('auth.login.hidePassword') : t('auth.login.showPassword')}
               >
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
@@ -70,7 +72,7 @@ export default function LoginPage() {
 
           <Button type="submit" loading={isPending} className="w-full h-11">
             <LogIn className="h-4 w-4" />
-            {isPending ? 'در حال ورود...' : 'ورود'}
+            {isPending ? t('auth.login.submitting') : t('auth.login.submit')}
           </Button>
         </form>
 

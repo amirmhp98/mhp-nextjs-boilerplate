@@ -1,22 +1,21 @@
+"use client"
+
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
 
 import { cn } from "@/lib/utils"
-import { APP_DIR } from "@/lib/i18n"
 
 // Context to pass variant to triggers
 const TabsContext = React.createContext<"underline" | "pills" | "solid">("underline")
 
 function Tabs({
   className,
-  dir,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
       className={cn("flex flex-col gap-6", className)}
-      dir={dir ?? APP_DIR}
       {...props}
     />
   )

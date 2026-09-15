@@ -2,6 +2,7 @@
 
 import { login, logout } from '@/lib/auth';
 import { redirect } from 'next/navigation';
+import { t } from '@/lib/t';
 
 export async function loginAction(
   _prev: { error?: string } | null,
@@ -11,7 +12,7 @@ export async function loginAction(
   const password = formData.get('password') as string;
 
   if (!username || !password) {
-    return { error: 'نام کاربری و رمز عبور الزامی است' };
+    return { error: t('auth.errors.missingCredentials') };
   }
 
   const result = await login(username, password);

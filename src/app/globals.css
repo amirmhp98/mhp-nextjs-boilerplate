@@ -1,10 +1,10 @@
 @import "tailwindcss";
 @plugin "tailwindcss-animate";
-@source "../../node_modules/@parto-system-design/ui/dist";
 
 /* RTL/LTR Variants */
 @custom-variant rtl ([dir="rtl"] &);
 @custom-variant ltr ([dir="ltr"] &);
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* ═══════════════════════════════════════════════════════════════════════════
    COLOR SYSTEM — SINGLE SOURCE OF TRUTH
@@ -93,19 +93,6 @@
     --surface-3: 0 0% 100%;
     --surface-4: 240 4.8% 95.9%;
 
-    /* ─── Design-System Token Overrides ─────────────────────────── */
-    --background-overlay-default: 0 0% 98.8%;
-    --background-overlay-hover: 0 0% 95.3%;
-    --background-selection: 0 0% 92.9%;
-    --background-control: 0 0% 95.3%;
-    --background-alternative-default: 0 0% 99.2%;
-    --border-overlay: 0 0% 91%;
-    --border-strong: 0 0% 83.1%;
-    --border-stronger: 0 0% 56.1%;
-    --border-control: 0 0% 78%;
-    --foreground-lighter: 0 0% 43.9%;
-    --foreground-light: 0 0% 32.2%;
-    --foreground-contrast: 0 0% 98.4%;
 
     --radius: 0.5rem;
   }
@@ -173,24 +160,11 @@
     --surface-3: 230 15% 18%;
     --surface-4: 230 15% 22%;
 
-    /* ─── Design-System Token Overrides ─────────────────────────── */
-    --background-overlay-default: 240 10% 14%;
-    --background-overlay-hover: 240 10% 18%;
-    --background-selection: 240 10% 19%;
-    --background-control: 240 10% 14%;
-    --background-alternative-default: 240 10% 6%;
-    --border-overlay: 240 8% 20%;
-    --border-strong: 240 8% 21%;
-    --border-stronger: 240 8% 27%;
-    --border-control: 240 8% 22%;
-    --foreground-lighter: 0 0% 53.7%;
-    --foreground-light: 0 0% 70.6%;
-    --foreground-contrast: 0 0% 8.6%;
   }
 }
 
 @theme {
-  --font-family: var(--font-yekan-bakh, 'Yekan Bakh'), -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-family-mono: 'Courier New', 'Monaco', 'Menlo', monospace;
   --font-sans: var(--font-family);
 
@@ -245,18 +219,6 @@
   --color-surface-3: hsl(var(--surface-3));
   --color-surface-4: hsl(var(--surface-4));
 
-  --color-overlay: hsl(var(--background-overlay-default));
-  --color-overlay-hover: hsl(var(--background-overlay-hover));
-  --color-border-overlay: hsl(var(--border-overlay));
-  --color-foreground-lighter: hsl(var(--foreground-lighter));
-  --color-foreground-light: hsl(var(--foreground-light));
-  --color-foreground-contrast: hsl(var(--foreground-contrast));
-  --color-selection: hsl(var(--background-selection));
-  --color-strong: hsl(var(--border-strong));
-  --color-stronger: hsl(var(--border-stronger));
-  --color-border-control: hsl(var(--border-control));
-  --color-background-control: hsl(var(--background-control));
-  --color-alternative: hsl(var(--background-alternative-default));
   --color-warning-200: hsl(var(--warning-200));
   --color-destructive-200: hsl(var(--destructive-200));
 
@@ -267,12 +229,6 @@
   /* Extra-small text scale below Tailwind's built-in text-xs (12px) */
   --text-2xs: 0.625rem;          /* 10px */
   --text-2xs--line-height: 1rem;
-
-  /* Typography line-height scale for Persian readability */
-  /* text-2xl = page titles, text-lg = sections, text-base = body, text-sm = secondary */
-  --leading-tight: 1.4;
-  --leading-normal: 1.6;
-  --leading-relaxed: 1.8;
 }
 
 @layer base {
@@ -280,21 +236,11 @@
     @apply border-border;
   }
 
-  :root {
-    direction: rtl;
-  }
-
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    direction: rtl;
     text-align: start;
     font-family: var(--font-family);
-    line-height: var(--leading-normal); /* 1.6 — Persian needs more breathing room */
-  }
-
-  input, textarea, select {
-    direction: rtl;
-    text-align: start;
+    line-height: var(--leading-normal);
   }
 
   .ltr {
@@ -349,29 +295,6 @@
   }
 }
 
-/* ---------------------------------------------------------------------------
-   Design-system dark-mode overrides
-   Placed OUTSIDE @layer so they beat Tailwind utility classes in cascade.
-   --------------------------------------------------------------------------- */
-
-/* Sync the design-system SelectTrigger with our input field styling */
-.dark [data-slot="select-trigger"],
-.dark button[role="combobox"] {
-  background-color: hsl(var(--background)) !important;
-  border-color: hsl(var(--border)) !important;
-}
-
-.dark [data-slot="select-trigger"]:hover,
-.dark button[role="combobox"]:hover {
-  background-color: hsl(var(--background-selection)) !important;
-  border-color: hsl(var(--border-stronger)) !important;
-}
-
-/* Note: the UI library's dark theme sets --foreground-contrast to near-black, making
-   text-foreground-contrast invisible on brand-colored surfaces (e.g. checkbox tick).
-   The fix lives in UiComponents.tsx wrappers which override the CSS variable at the
-   element level via inline style. */
-
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -381,4 +304,47 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Locale atmosphere. <html lang> and <html dir> come from src/lib/locale.ts.
+   Persian: Yekan Bakh, slightly larger small text, roomier line-height, no
+   letter-spacing (tracking breaks joined script), and no italic or uppercase
+   (the script has neither). Latin: system stack and Tailwind defaults.
+   Outside @layer so these beat utility classes.
+   ─────────────────────────────────────────────────────────────────────────── */
+[lang="fa"] {
+  --font-family: var(--font-yekan-bakh), 'Yekan Bakh', system-ui, sans-serif;
+
+  --text-xs: 0.8125rem;            /* 13px */
+  --text-xs--line-height: 1.25rem;
+  --text-sm: 0.9375rem;            /* 15px */
+  --text-sm--line-height: 1.5rem;
+  --text-base: 1.0625rem;          /* 17px */
+  --text-base--line-height: 1.75rem;
+
+  --leading-tight: 1.4;
+  --leading-normal: 1.6;
+  --leading-relaxed: 1.8;
+
+  --tracking-tighter: 0;
+  --tracking-tight: 0;
+  --tracking-normal: 0;
+  --tracking-wide: 0;
+  --tracking-wider: 0;
+  --tracking-widest: 0;
+}
+
+[lang="fa"] .italic {
+  font-style: normal;
+}
+
+[lang="fa"] .uppercase,
+[lang="fa"] .capitalize {
+  text-transform: none;
+}
+
+/* Digits line up in tables regardless of the numbering system. */
+[lang="fa"] table {
+  font-variant-numeric: tabular-nums;
 }

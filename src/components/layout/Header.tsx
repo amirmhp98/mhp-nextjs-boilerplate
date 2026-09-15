@@ -12,11 +12,12 @@ import { useSidebar } from './SidebarContext';
 import { useAuth } from './AuthProvider';
 import { logoutAction } from '@/actions/auth.actions';
 import { ThemeToggle } from './ThemeToggle';
+import { t } from '@/lib/t';
 
 const PAGE_TITLES: Record<string, string> = {
-  '/': 'خانه',
-  '/admin/users': 'مدیریت کاربران',
-  '/components': 'کتابخانه کامپوننت‌ها',
+  '/': t('nav.home'),
+  '/admin/users': t('users.title'),
+  '/components': t('components.title'),
 };
 
 export function Header() {
@@ -50,7 +51,7 @@ export function Header() {
             size="icon"
             className="md:hidden"
             onClick={() => setMobileOpen(true)}
-            aria-label="منوی ناوبری"
+            aria-label={t('shell.openMenu')}
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -60,12 +61,12 @@ export function Header() {
             size="icon"
             className="hidden md:inline-flex"
             onClick={toggleCollapse}
-            aria-label={isCollapsed ? 'باز کردن منوی کناری' : 'بستن منوی کناری'}
+            aria-label={isCollapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
           >
             {isCollapsed ? (
-              <PanelLeftOpen className="h-5 w-5" />
+              <PanelLeftOpen className="h-5 w-5 rtl:-scale-x-100" />
             ) : (
-              <PanelLeftClose className="h-5 w-5" />
+              <PanelLeftClose className="h-5 w-5 rtl:-scale-x-100" />
             )}
           </Button>
 
@@ -86,7 +87,7 @@ export function Header() {
                     {user.fullName}
                     {user.role === 'ADMIN' && (
                       <Badge variant="outline" className="text-2xs px-1.5 py-0 h-4 border-primary/30 text-primary">
-                        مدیر
+                        {t('shell.adminBadge')}
                       </Badge>
                     )}
                   </div>
@@ -105,7 +106,7 @@ export function Header() {
                   {user.role === 'ADMIN' && (
                     <div className="flex items-center gap-1 text-xs text-primary">
                       <Shield className="h-3 w-3" />
-                      <span>مدیر سیستم</span>
+                      <span>{t('shell.adminRole')}</span>
                     </div>
                   )}
                 </div>
@@ -116,7 +117,7 @@ export function Header() {
                 onClick={() => logoutAction()}
               >
                 <LogOut className="h-4 w-4 me-2" />
-                خروج
+                {t('auth.logout')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

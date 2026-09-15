@@ -5,6 +5,7 @@ import { requireAdmin } from '@/lib/auth';
 import { hashPassword } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 import type { v2_UserRole } from '@prisma/client';
+import { t } from '@/lib/t';
 
 export async function getUsers() {
   await requireAdmin();
@@ -34,17 +35,17 @@ export async function createUser(data: {
   const admin = await requireAdmin();
 
   if (!data.username.trim() || !data.password || !data.fullName.trim()) {
-    return { success: false, error: 'تمام فیلدها الزامی هستند' };
+    return { success: false, error: t('users.errors.allFieldsRequired') };
   }
 
   if (data.password.length < 6) {
-    return { success: false, error: 'رمز عبور باید حداقل ۶ کاراکتر باشد' };
+    return { success: false, error: t('users.errors.passwordTooShort') };
   }
 
   // Check username uniqueness
   const existing = await prisma.v2_User.findUnique({ where: { username: data.username.trim() } });
   if (existing) {
-    return { success: false, error: 'این نام کاربری قبلاً استفاده شده است' };
+    return { success: false, error: t('users.errors.usernameTaken') };
   }
 
   const passwordHash = await hashPassword(data.password);
@@ -70,12 +71,12 @@ export async function updateUser(
 
   const user = await prisma.v2_User.findUnique({ where: { id: userId } });
   if (!user) {
-    return { success: false, error: 'کاربر یافت نشد' };
+    return { success: false, error: t('users.errors.notFound') };
   }
 
   // Cannot change own role
   if (data.role && userId === admin.id) {
-    return { success: false, error: 'نمی‌توانید نقش خود را تغییر دهید' };
+    return { success: false, error: t('users.errors.cannotChangeOwnRole') };
   }
 
   await prisma.v2_User.update({
@@ -94,12 +95,12 @@ export async function toggleUserActive(userId: string): Promise<{ success: boole
   const admin = await requireAdmin();
 
   if (userId === admin.id) {
-    return { success: false, error: 'نمی‌توانید حساب خود را غیرفعال کنید' };
+    return { success: false, error: t('users.errors.cannotDeactivateSelf') };
   }
 
   const user = await prisma.v2_User.findUnique({ where: { id: userId } });
   if (!user) {
-    return { success: false, error: 'کاربر یافت نشد' };
+    return { success: false, error: t('users.errors.notFound') };
   }
 
   await prisma.v2_User.update({
@@ -123,12 +124,12 @@ export async function resetUserPassword(
   await requireAdmin();
 
   if (!newPassword || newPassword.length < 6) {
-    return { success: false, error: 'رمز عبور باید حداقل ۶ کاراکتر باشد' };
+    return { success: false, error: t('users.errors.passwordTooShort') };
   }
 
   const user = await prisma.v2_User.findUnique({ where: { id: userId } });
   if (!user) {
-    return { success: false, error: 'کاربر یافت نشد' };
+    return { success: false, error: t('users.errors.notFound') };
   }
 
   const passwordHash = await hashPassword(newPassword);

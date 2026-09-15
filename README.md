@@ -1,6 +1,6 @@
 # {{PROJECT_NAME}}
 
-RTL-first (Persian/Farsi) web application boilerplate built with Next.js 16, React 19, Tailwind CSS 4, and Prisma.
+Locale-profile-driven web application boilerplate built with Next.js 16, React 19, Tailwind CSS 4, and Prisma. Persian / RTL / Jalali by default; English / LTR / Gregorian with a single env var.
 
 ## Quick Start
 
@@ -34,7 +34,8 @@ Set `SKIP_AUTH=true` in `.env` to bypass authentication and run without a databa
 | Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
 | Backend | Next.js Server Actions + API Routes |
 | Database | PostgreSQL via Prisma ORM |
-| UI Components | RTL-ready shadcn-based design system + custom RTL-safe components |
+| UI Components | Locally owned shadcn components generated in RTL mode (logical classes), re-exported from `@/components/UiComponents` |
+| Locale | One profile (`src/lib/locale.ts`) drives direction, calendar, numerals, time zone, currency; Intl-based formatting in `@/lib/format` |
 | Auth | Cookie-based sessions with bcrypt |
 | Deployment | Docker (standalone Next.js output) |
 
@@ -49,8 +50,15 @@ src/
     ui/          # Base UI components (Button, Card, Input, etc.)
     layout/      # Layout components (Sidebar, Header, ThemeToggle)
     common/      # Shared components (SectionHeader)
-    UiComponents.tsx  # Central re-export with RTL wrappers
-  lib/           # Utilities (auth, prisma, i18n, logger, fonts)
+    UiComponents.tsx  # Barrel — the only UI import surface for app code
+  lib/
+    locale.ts    # Locale profile (lang, dir, calendar, numerals, tz, currency)
+    format.ts    # Intl formatting: numbers, currency, dates, relative time, lists, plural
+    persian.ts   # Input normalization: digits, Arabic/Persian characters
+    t.ts         # t() / tp() message lookup
+    validators/  # Iranian identifiers (national ID, mobile, SHEBA, card, postal code)
+    ...          # auth, prisma, logger, fonts, theme
+  messages/      # User-facing strings per locale (fa.ts, en.ts)
   types/         # TypeScript type definitions
 prisma/          # Database schema and seed
 e2e/             # Playwright end-to-end tests
@@ -65,7 +73,7 @@ docs/            # PRD and checklists
 | `npm run build` | Production build |
 | `npm run start` | Start production server |
 | `npm run lint` | Run ESLint |
-| `npm run lint:rtl` | Check for RTL violations (no physical ml/mr/pl/pr) |
+| `npm run lint:rtl` | Locale smoke check: physical utilities, physical `side` props, UI import boundary |
 | `npm run lint:all` | Run all linters |
 | `npm run test` | Run unit tests (Vitest) |
 | `npm run test:watch` | Run tests in watch mode |
@@ -73,13 +81,29 @@ docs/            # PRD and checklists
 
 ## Features
 
-- **RTL-first** — All UI is right-to-left safe, primary language Persian (Farsi)
+- **Locale profile** — One config (`src/lib/locale.ts`) sets language, direction, calendar, numerals, time zone, and currency. RTL Persian with the Jalali calendar and Yekan Bakh by default; LTR English with the Gregorian calendar via `NEXT_PUBLIC_LOCALE=en`
 - **Dark & Light mode** — Theme toggle with localStorage persistence, no flash
 - **Authentication** — Cookie-based session auth with admin/analyst roles
 - **Component library** — Battle-tested UI components at `/components`
-- **Persian typography** — Yekan Bakh variable font with optimized line heights
 - **Security headers** — X-Content-Type-Options, X-Frame-Options, Referrer-Policy
 - **Docker ready** — Dockerfile with standalone output, docker-compose template
+
+## Locale & Direction
+
+Everything locale-related reads one profile from `src/lib/locale.ts`:
+
+| Profile | Direction | Intl tag | Calendar | Numerals | Time zone | Currency |
+|---------|-----------|----------|----------|----------|-----------|----------|
+| `fa` (default) | RTL | `fa-IR` | Jalali | Persian digits | `Asia/Tehran` | IRR (shown as toman) |
+| `en` | LTR | `en-US` | Gregorian | Latin digits | `UTC` | USD |
+
+- **Switching** — set `NEXT_PUBLIC_LOCALE=en` in `.env` (or the environment) and rebuild / restart `npm run dev`. It is inlined at build time, so one deployment runs one profile. `<html lang dir>`, the root `DirectionProvider`, the font (Yekan Bakh under `[lang="fa"]`), Playwright's browser locale and time zone, and every formatter follow it.
+- **Strings** — `t('key')` / `tp('key', count)` from `@/lib/t`, backed by `src/messages/{fa,en}.ts`.
+- **Numbers, dates, currency** — `formatNumber`, `formatCurrency`, `formatDate`, `formatDateTime`, `formatRelative`, `formatList`, `plural`, `sortBy` from `@/lib/format`. All default to the profile and accept per-call overrides.
+- **Per-field calendar** — `Calendar` / `DatePicker` follow the profile; pass `calendar="gregory"` (or `"persian"`) on a single field that must differ, e.g. a passport expiry date inside the Persian app. The adapter is lazy-loaded.
+- **Input** — normalize free text with `normalizeInput` from `@/lib/persian` (Persian/Arabic digits and characters to a canonical form); Iranian identifiers are checked with `@/lib/validators/iran`. Wrap inline Latin runs (codes, phones, emails) in `<Ltr>` inside RTL text.
+- **Lint guard** — `npm run lint:rtl` (part of `npm run lint:all`) fails on physical utilities (`ml/mr/pl/pr/left-/right-/border-l/r/rounded-l/r/text-left/right`), physical `side="left|right"` props, and UI primitives imported outside `src/components/ui/**`. ESLint enforces the same import boundary.
+- **Verification** — `/components` is the visual regression surface for both directions; `e2e/locale.spec.ts` asserts `lang`/`dir`, computed direction, no horizontal overflow, and sidebar placement for the active profile.
 
 ## Placeholders
 

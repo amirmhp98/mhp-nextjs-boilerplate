@@ -1,4 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
+import { DEFAULT_LOCALE, LOCALES } from '../src/lib/locale';
+
+// The browser runs with the same profile the app is built with
+// (NEXT_PUBLIC_LOCALE, resolved in src/lib/locale.ts).
+const profile = LOCALES[DEFAULT_LOCALE];
 
 export default defineConfig({
   testDir: '.',
@@ -10,8 +15,8 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
-    locale: 'fa-IR',
-    timezoneId: 'Asia/Tehran',
+    locale: profile.tag,
+    timezoneId: profile.timeZone,
   },
   projects: [
     { name: 'setup', testMatch: /.*\.setup\.ts/ },

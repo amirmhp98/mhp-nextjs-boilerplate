@@ -2,7 +2,7 @@
 
 **Product:** {{PROJECT_NAME}}
 **Version:** 1.0
-**Last Updated:** YYYY-MM-DD
+**Last Updated:** 2026-09-14
 **Status:** Active Development
 
 ---
@@ -23,9 +23,16 @@
 
 ### 1.3 Language & Locale
 
-- **Primary UI Language:** Persian (Farsi) — RTL layout throughout.
-- **Locale:** `fa-IR`, Timezone: `Asia/Tehran`.
-- Persian numerals and date formatting are used across the interface.
+The UI is driven by a single locale profile (`src/lib/locale.ts`), selected at build time with `NEXT_PUBLIC_LOCALE`. One deployment runs one profile; nothing else in the app decides direction, calendar, or numerals on its own.
+
+| Profile | Language / Direction | Intl tag | Calendar | Numerals | Time zone | Week | Currency |
+|---------|----------------------|----------|----------|----------|-----------|------|----------|
+| `fa` (default) | Persian, RTL | `fa-IR` | Jalali (`persian`) | Persian (`arabext`) | `Asia/Tehran` | Starts Saturday, weekend Friday | IRR, displayed as toman |
+| `en` | English, LTR | `en-US` | Gregorian (`gregory`) | Latin (`latn`) | `UTC` | Starts Monday, weekend Sat–Sun | USD |
+
+- User-facing strings live in `src/messages/{fa,en}.ts` and are read through `t()` / `tp()` (`@/lib/t`).
+- Numbers, dates, and currency are formatted with `@/lib/format` from the profile; a single field may override the calendar (e.g. a Gregorian passport date inside the Persian app).
+- Free-text input is normalized with `@/lib/persian` so Persian/Arabic digits and characters are stored canonically; Iranian identifiers are validated with `@/lib/validators/iran`.
 
 ---
 
@@ -114,9 +121,10 @@ User navigates to /path
 | Token          | Value                          |
 |----------------|--------------------------------|
 | Brand Color    | `#4ADE80` (brand green)        |
-| Font Family    | Yekan Bakh (Persian typeface)  |
+| Font Family    | Yekan Bakh for `fa` (via `[lang="fa"]`), system sans stack for `en` |
 | Theme          | Dark mode (default)            |
-| Layout         | RTL                            |
+| Direction      | From the locale profile: RTL (`fa`) / LTR (`en`); logical CSS only |
+| Calendar       | From the locale profile: Jalali (`fa`) / Gregorian (`en`); per-field `calendar` override |
 | Framework      | Tailwind CSS v4 + CVA variants |
 
 ---

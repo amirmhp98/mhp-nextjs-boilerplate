@@ -33,17 +33,19 @@ import {
     DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
     // Steppers
     Stepper, DotStepper, ProgressStepper,
-    // Icon
-    Icon,
+    // Calendar
+    Calendar, DatePicker, DateRangePicker, type DateRange,
 } from '@/components/UiComponents';
 import { SectionHeader } from '@/components/common/SectionHeader';
+import { formatDate } from '@/lib/format';
+import { locale } from '@/lib/locale';
 import {
     Palette, Type, Square, AlignLeft, Bell, Database, Navigation,
     Layers, LayoutGrid, BarChart2, Image, Settings, ChevronRight,
     BarChart3, FileImage, HeartPulse, MessageCircle, Newspaper,
     Search, Plus, Trash2, Edit, Download, Upload, Share2, Star,
-    Heart, Eye, Users, FileText, TrendingUp, Clock, Calendar,
-    Home, ArrowLeft, Check, X, Info, AlertTriangle, CheckCircle,
+    Heart, Eye, Users, FileText, TrendingUp, Clock, Calendar as CalendarIcon,
+    Home, ArrowLeft, Check, X, Info, AlertTriangle, CheckCircle, List, CalendarDays,
     XCircle, Zap, Globe, Lock, Unlock, Mail, Phone, Cpu,
 } from 'lucide-react';
 
@@ -75,7 +77,7 @@ const LUCIDE_ICONS = [
     { name: 'Edit', icon: Edit }, { name: 'Download', icon: Download }, { name: 'Upload', icon: Upload },
     { name: 'Share2', icon: Share2 }, { name: 'Star', icon: Star }, { name: 'Heart', icon: Heart },
     { name: 'Eye', icon: Eye }, { name: 'Users', icon: Users }, { name: 'FileText', icon: FileText },
-    { name: 'TrendingUp', icon: TrendingUp }, { name: 'Clock', icon: Clock }, { name: 'Calendar', icon: Calendar },
+    { name: 'TrendingUp', icon: TrendingUp }, { name: 'Clock', icon: Clock }, { name: 'Calendar', icon: CalendarIcon },
     { name: 'Home', icon: Home }, { name: 'ArrowLeft', icon: ArrowLeft }, { name: 'Check', icon: Check },
     { name: 'X', icon: X }, { name: 'Info', icon: Info }, { name: 'AlertTriangle', icon: AlertTriangle },
     { name: 'CheckCircle', icon: CheckCircle }, { name: 'XCircle', icon: XCircle }, { name: 'Zap', icon: Zap },
@@ -84,14 +86,6 @@ const LUCIDE_ICONS = [
     { name: 'BarChart3', icon: BarChart3 }, { name: 'FileImage', icon: FileImage }, { name: 'HeartPulse', icon: HeartPulse },
     { name: 'MessageCircle', icon: MessageCircle }, { name: 'Newspaper', icon: Newspaper }, { name: 'Settings', icon: Settings },
     { name: 'ChevronRight', icon: ChevronRight }, { name: 'BarChart2', icon: BarChart2 }, { name: 'Layers', icon: Layers },
-];
-
-const UI_ICON_NAMES = [
-    'search', 'plus', 'trash', 'edit', 'download', 'upload', 'share', 'star', 'heart',
-    'eye', 'users', 'fileText', 'trendingUp', 'clock', 'calendar', 'home', 'arrowLeft',
-    'check', 'x', 'info', 'alertTriangle', 'checkCircle', 'xCircle', 'zap', 'globe',
-    'lock', 'mail', 'settings', 'barChart', 'layers', 'image', 'video', 'grid',
-    'list', 'filter', 'layoutGrid', 'chevronDown', 'chevronRight', 'chevronLeft',
 ];
 
 const SECTIONS = [
@@ -103,6 +97,7 @@ const SECTIONS = [
     { id: 'display', label: 'نمایش داده', icon: Database },
     { id: 'navigation', label: 'ناوبری', icon: Navigation },
     { id: 'overlays', label: 'لایه‌های رویه‌ای', icon: Layers },
+    { id: 'calendar', label: 'تقویم', icon: CalendarDays },
     { id: 'steppers', label: 'استپرها', icon: LayoutGrid },
     { id: 'icons', label: 'آیکون‌ها', icon: Settings },
 ];
@@ -123,6 +118,9 @@ function ShowcaseSection({ title, children }: { title: string; children: React.R
 export default function ComponentsPage() {
     // State
     const [stepperStep, setStepperStep] = useState(0);
+    const [pickedDate, setPickedDate] = useState<Date | undefined>(undefined);
+    const [pickedRange, setPickedRange] = useState<DateRange | undefined>(undefined);
+    const [gregorianDate, setGregorianDate] = useState<Date | undefined>(undefined);
     const [checkboxChecked, setCheckboxChecked] = useState(true);
     const [switchOn, setSwitchOn] = useState(true);
     const [sliderVal, setSliderVal] = useState([40]);
@@ -144,7 +142,7 @@ export default function ComponentsPage() {
             <div className="flex gap-0 min-h-screen">
 
                 {/* ── Sticky nav ── */}
-                <aside className="hidden xl:flex sticky top-14 h-[calc(100vh-3.5rem)] w-52 shrink-0 flex-col border-l border-border/40 bg-card/40 overflow-y-auto p-3 gap-1">
+                <aside className="hidden xl:flex sticky top-14 h-[calc(100vh-3.5rem)] w-52 shrink-0 flex-col border-e border-border/40 bg-card/40 overflow-y-auto p-3 gap-1">
                     <p className="text-2xs font-semibold text-muted-foreground/60 px-2 py-1.5 uppercase tracking-wider">بخش‌ها</p>
                     {SECTIONS.map(s => (
                         <button
@@ -633,8 +631,8 @@ export default function ComponentsPage() {
                                 <Toggle>تاریخچه</Toggle>
                                 <Toggle variant="outline">خطدار</Toggle>
                                 <ToggleGroup type="single" defaultValue="grid">
-                                    <ToggleGroupItem value="grid"><Icon name="layoutGrid" className="w-4 h-4" /></ToggleGroupItem>
-                                    <ToggleGroupItem value="list"><Icon name="list" className="w-4 h-4" /></ToggleGroupItem>
+                                    <ToggleGroupItem value="grid"><LayoutGrid className="w-4 h-4" /></ToggleGroupItem>
+                                    <ToggleGroupItem value="list"><List className="w-4 h-4" /></ToggleGroupItem>
                                 </ToggleGroup>
                             </div>
                         </ShowcaseSection>
@@ -729,6 +727,44 @@ export default function ComponentsPage() {
                         </ShowcaseSection>
                     </div>
 
+                    {/* ════════════════════════════════ CALENDAR ════════════════════════════════ */}
+                    <div ref={el => { sectionRefs.current['calendar'] = el; }} className="space-y-8">
+                        <SectionHeader icon={<CalendarDays className="size-6" />} title="تقویم و انتخاب تاریخ" description={`تقویم پیش‌فرض این استقرار: ${locale.calendar === 'persian' ? 'جلالی' : 'میلادی'} (${locale.tag}). مقدارها همیشه Date/ISO هستند؛ تقویم فقط نمایش است.`} />
+
+                        <ShowcaseSection title="Calendar — inline (پیش‌فرض پروفایل)">
+                            <div className="flex flex-wrap gap-6">
+                                <div className="rounded-lg border border-border/60">
+                                    <Calendar mode="single" selected={pickedDate} onSelect={setPickedDate} />
+                                </div>
+                                <div className="rounded-lg border border-border/60">
+                                    <Calendar mode="single" captionLayout="dropdown" selected={pickedDate} onSelect={setPickedDate} />
+                                </div>
+                            </div>
+                        </ShowcaseSection>
+
+                        <ShowcaseSection title="DatePicker و DateRangePicker">
+                            <div className="flex flex-wrap items-start gap-4">
+                                <div className="space-y-2">
+                                    <DatePicker value={pickedDate} onChange={setPickedDate} />
+                                    <p className="text-xs text-muted-foreground">{pickedDate ? `میلادی: ${formatDate(pickedDate, { calendar: 'gregory', numerals: 'latn' })}` : 'مقداری انتخاب نشده'}</p>
+                                </div>
+                                <div className="space-y-2">
+                                    <DateRangePicker value={pickedRange} onChange={setPickedRange} />
+                                    <p className="text-xs text-muted-foreground">{pickedRange?.from ? `${formatDate(pickedRange.from)}${pickedRange.to ? ` ← ${formatDate(pickedRange.to)}` : ''}` : 'بازه‌ای انتخاب نشده'}</p>
+                                </div>
+                            </div>
+                        </ShowcaseSection>
+
+                        <ShowcaseSection title="Override برای یک فیلد — calendar=&quot;gregory&quot;">
+                            <p className="text-xs text-muted-foreground mb-3">برای فیلدهایی مثل تاریخ انقضای پاسپورت یا قرارداد خارجی، تقویم را فقط برای همان فیلد عوض کنید. برچسب‌ها همچنان به زبان پروفایل هستند.</p>
+                            <div className="flex flex-wrap items-start gap-4">
+                                <DatePicker calendar="gregory" value={gregorianDate} onChange={setGregorianDate} />
+                                <DatePicker calendar="persian" value={gregorianDate} onChange={setGregorianDate} />
+                                <p className="text-xs text-muted-foreground self-center">{gregorianDate ? `همان مقدار در دو تقویم: ${formatDate(gregorianDate, { calendar: 'gregory' })} = ${formatDate(gregorianDate, { calendar: 'persian' })}` : 'یک تاریخ انتخاب کنید'}</p>
+                            </div>
+                        </ShowcaseSection>
+                    </div>
+
                     {/* ════════════════════════════════ STEPPERS ════════════════════════════════ */}
                     <div ref={el => { sectionRefs.current['steppers'] = el; }} className="space-y-8">
                         <SectionHeader icon={<LayoutGrid className="size-6" />} title="استپرها" description="Stepper، DotStepper، ProgressStepper — تعاملی" />
@@ -767,7 +803,7 @@ export default function ComponentsPage() {
 
                     {/* ════════════════════════════════ ICONS ════════════════════════════════ */}
                     <div ref={el => { sectionRefs.current['icons'] = el; }} className="space-y-8">
-                        <SectionHeader icon={<Settings className="size-6" />} title="آیکون‌ها" description="Lucide React icons و Icon component پروژه" />
+                        <SectionHeader icon={<Settings className="size-6" />} title="آیکون‌ها" description="Lucide React icons" />
 
                         <ShowcaseSection title="Lucide Icons (در پروژه استفاده شده)">
                             <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
@@ -783,25 +819,7 @@ export default function ComponentsPage() {
                                     </Tooltip>
                                 ))}
                             </div>
-                        </ShowcaseSection>
-
-                        <ShowcaseSection title="Icon component (UI.Icons)">
-                            <p className="text-xs text-muted-foreground mb-3">از طریق <code className="bg-muted px-1 rounded">{'<Icon name="..." />'}</code> در پروژه استفاده می‌شود:</p>
-                            <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-3">
-                                {UI_ICON_NAMES.map(name => (
-                                    <Tooltip key={name}>
-                                        <TooltipTrigger asChild>
-                                            <div className="flex flex-col items-center gap-1.5 p-2.5 rounded-lg border border-border/40 hover:bg-muted/50 hover:border-primary/30 transition-colors cursor-default">
-                                                <Icon name={name} className="w-5 h-5 text-muted-foreground" />
-                                                <span className="text-2xs text-muted-foreground/60 text-center leading-tight truncate w-full text-center">{name}</span>
-                                            </div>
-                                        </TooltipTrigger>
-                                        <TooltipContent><code className="text-xs">{name}</code></TooltipContent>
-                                    </Tooltip>
-                                ))}
-                            </div>
-                        </ShowcaseSection>
-                    </div>
+                        </ShowcaseSection>                    </div>
 
                     <div className="h-16" />
                 </main>

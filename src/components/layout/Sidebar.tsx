@@ -17,6 +17,7 @@ import {
 import { useSidebar } from './SidebarContext';
 import { useAuth } from './AuthProvider';
 import { logoutAction } from '@/actions/auth.actions';
+import { t } from '@/lib/t';
 
 type NavItem = {
     label: string;
@@ -36,23 +37,23 @@ type NavGroup = {
 
 const navGroups: NavGroup[] = [
     {
-        title: 'داشبورد',
+        title: t('nav.group.dashboard'),
         items: [
-            { label: 'خانه', href: '/', icon: Home },
+            { label: t('nav.home'), href: '/', icon: Home },
         ],
     },
     {
-        title: 'ابزارها',
+        title: t('nav.group.tools'),
         secondary: true,
         items: [
-            { label: 'کامپوننت‌ها', href: '/components', icon: Layers, secondary: true },
+            { label: t('nav.components'), href: '/components', icon: Layers, secondary: true },
         ],
     },
     {
-        title: 'مدیریت',
+        title: t('nav.group.admin'),
         adminOnly: true,
         items: [
-            { label: 'کاربران', href: '/admin/users', icon: Users, adminOnly: true },
+            { label: t('nav.users'), href: '/admin/users', icon: Users, adminOnly: true },
         ],
     },
 ];
@@ -134,9 +135,9 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
                                             </Link>
                                         )}
                                     </TooltipTrigger>
-                                    <TooltipContent side="left" sideOffset={8}>
+                                    <TooltipContent side="end" sideOffset={8}>
                                         <span>{item.label}</span>
-                                        {item.comingSoon && <span className="text-muted-foreground ms-1">(به‌زودی)</span>}
+                                        {item.comingSoon && <span className="text-muted-foreground ms-1">({t('nav.comingSoon')})</span>}
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -183,8 +184,8 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
                                     <LogOut className="w-4.5 h-4.5 shrink-0" />
                                 </button>
                             </TooltipTrigger>
-                            <TooltipContent side="left" sideOffset={8}>
-                                خروج
+                            <TooltipContent side="end" sideOffset={8}>
+                                {t('auth.logout')}
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>
@@ -194,7 +195,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
                         className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 w-full"
                     >
                         <LogOut className="w-4.5 h-4.5 shrink-0" />
-                        <span>خروج</span>
+                        <span>{t('auth.logout')}</span>
                     </button>
                 )}
             </div>
@@ -210,7 +211,7 @@ export function Sidebar() {
             {/* Desktop / Tablet sidebar */}
             <aside
                 className={`
-                    sticky top-0 h-screen shrink-0 border-l border-border bg-card/60 backdrop-blur-xl
+                    sticky top-0 h-screen shrink-0 border-e border-border bg-card/60 backdrop-blur-xl
                     flex-col z-50 transition-[width] duration-300 ease-in-out overflow-hidden
                     hidden md:flex
                     ${isCollapsed ? 'w-16' : 'w-60'}
@@ -219,9 +220,9 @@ export function Sidebar() {
                 <div className="h-14 shrink-0 flex items-center justify-center px-5 border-b border-border">
                     <Link href="/">
                         {isCollapsed ? (
-                            <Image src="/logo.png" alt="Logo" width={32} height={32} className="h-8 w-8 object-contain" priority />
+                            <Image src="/logo.png" alt={t('shell.logoAlt')} width={32} height={32} className="h-8 w-8 object-contain" priority />
                         ) : (
-                            <Image src="/logo.png" alt="Logo" width={120} height={40} className="h-8 w-auto" priority />
+                            <Image src="/logo.png" alt={t('shell.logoAlt')} width={120} height={40} className="h-8 w-auto" priority />
                         )}
                     </Link>
                 </div>
@@ -239,11 +240,11 @@ export function Sidebar() {
 
             {/* Mobile Sheet drawer */}
             <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
-                <SheetContent side="right" className="w-60 p-0 flex flex-col">
-                    <SheetTitle className="sr-only">منوی ناوبری</SheetTitle>
+                <SheetContent side="start" className="w-60 p-0 flex flex-col">
+                    <SheetTitle className="sr-only">{t('nav.menuTitle')}</SheetTitle>
                     <div className="h-14 shrink-0 flex items-center justify-center px-5 border-b border-border">
                         <Link href="/" onClick={() => setMobileOpen(false)}>
-                            <Image src="/logo.png" alt="Logo" width={120} height={40} className="h-8 w-auto" priority />
+                            <Image src="/logo.png" alt={t('shell.logoAlt')} width={120} height={40} className="h-8 w-auto" priority />
                         </Link>
                     </div>
                     <SidebarNav collapsed={false} onNavigate={() => setMobileOpen(false)} />
