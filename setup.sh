@@ -89,6 +89,18 @@ grep -q "^const FALLBACK_LOCALE: LocaleId = '$LOCALE';" src/lib/locale.ts \
   || { echo "Error: could not set FALLBACK_LOCALE in src/lib/locale.ts"; exit 1; }
 # The locale override only makes sense while both dictionaries exist.
 perl -0pi -e 's/# ─── Locale profile.*?\nNEXT_PUBLIC_LOCALE=\w+\n\n//s' .env.example
+if [[ "$LOCALE" == "fa" ]]; then
+  LANG_LINE='Persian / RTL / Jalali'
+  PRD_LINE='Persian, RTL, Jalali calendar, Persian numerals, `Asia/Tehran`, toman'
+else
+  LANG_LINE='English / LTR / Gregorian'
+  PRD_LINE='English, LTR, Gregorian, Latin numerals, `UTC`, USD'
+fi
+LANG_LINE="$LANG_LINE" perl -0pi -e 's/One language per project, chosen at setup: Persian \/ RTL \/ Jalali or\s+English \/ LTR \/ Gregorian\./One language: $ENV{LANG_LINE}./' AGENTS.md
+PRD_LINE="$PRD_LINE" perl -0pi -e 's/One locale profile \(`src\/lib\/locale\.ts`\) per project, chosen once with `setup\.sh --locale`\.\n.*?\n\n/One locale profile (`src\/lib\/locale.ts`): $ENV{PRD_LINE}.\n\n/s' docs/PRD.md
+if grep -q 'chosen at setup' AGENTS.md || grep -q 'setup\.sh\|(default)' docs/PRD.md; then
+  echo "Error: could not rewrite the language sentence in AGENTS.md / docs/PRD.md"; exit 1
+fi
 ok "Language: $LOCALE (single dictionary at src/messages/$LOCALE.ts)"
 
 # ─── Persian-only parts ───────────────────────────────────────────────────

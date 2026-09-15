@@ -1,5 +1,5 @@
 /**
- * Project identity — the single place setup.sh rewrites.
+ * Project identity, set once at project setup.
  * Import APP_NAME instead of hardcoding the project name anywhere else.
  */
 export const APP_NAME = '{{PROJECT_NAME}}';

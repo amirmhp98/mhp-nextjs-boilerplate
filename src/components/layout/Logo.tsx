@@ -9,7 +9,7 @@ type LogoProps = {
 
 /**
  * Placeholder brand mark. Swap the <svg> for your real logo; the wordmark
- * reads APP_NAME so it updates automatically after setup.sh.
+ * reads APP_NAME, so the name lives in one place.
  * Server-safe: no hooks, no client state.
  */
 export function Logo({ compact = false, className }: LogoProps) {

@@ -6,7 +6,7 @@ import type { CreateUserInput, UpdateUserInput } from '@/lib/validations/user';
 import { hashPassword, revokeAllSessions } from '@/services/auth.service';
 
 /**
- * User management service — the reference module for this boilerplate.
+ * User management service — the reference module every other module copies.
  * Rules of the layer: no `next/*`, no React, throw `ServiceError` for
  * expected failures, let unexpected errors propagate. Inputs arrive already
  * validated by the zod schemas in `lib/validations/user.ts`.

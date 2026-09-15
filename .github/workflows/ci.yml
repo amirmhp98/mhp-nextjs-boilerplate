@@ -113,17 +113,20 @@ jobs:
           git archive HEAD | tar -x -C /tmp/smoke
           cd /tmp/smoke
           ./setup.sh smoke-${{ matrix.locale }} --locale ${{ matrix.locale }}
+          # `! grep` does not stop a `set -e` script; this does.
+          absent() { if grep "$@"; then echo "::error::must not survive setup: grep $*"; exit 1; fi; }
           test ! -f src/messages/$([ "${{ matrix.locale }}" = fa ] && echo en || echo fa).ts
-          ! grep -rq 'fa-only' AGENTS.md src/app/globals.css
+          absent -rn 'fa-only' AGENTS.md src/app/globals.css
           # Nothing that describes the template survives in a project.
           test ! -f setup.sh
-          ! grep -q 'matrix\|boilerplate-only\|setup-smoke' .github/workflows/ci.yml
-          ! grep -q 'boilerplate-only\|project-only\|setup\.sh\|{{' README.md
-          ! grep -qi 'boilerplate' README.md src/lib/app-config.ts
+          absent -n 'matrix\|boilerplate-only\|setup-smoke' .github/workflows/ci.yml
+          absent -n 'boilerplate-only\|project-only\|{{' README.md
+          absent -rni 'boilerplate' README.md AGENTS.md CLAUDE.md src
+          absent -rns 'setup\.sh\|chosen at setup' README.md AGENTS.md CLAUDE.md docs/PRD.md docs/rtl-fa-checklist.md src
           grep -q '^## Before the first feature' AGENTS.md
           if [ "${{ matrix.locale }}" = en ]; then
             test ! -d src/app/fonts && test ! -f scripts/rtl-smoke-check.mjs
-            ! grep -q 'lint:rtl' package.json
+            absent -n 'lint:rtl' package.json
           else
             test -f src/app/fonts/YekanBakh-VF.woff2 && grep -q 'lint:rtl' package.json
           fi

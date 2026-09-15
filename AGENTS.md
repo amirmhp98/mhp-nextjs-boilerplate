@@ -26,7 +26,7 @@ does this instead:
 2. **Match them against "What ships, what does not" below.** Name every gap before building it;
    a gap that changes a rule gets a note in `docs/decisions/`.
 3. **Write the product down** so nothing still reads as the template: fill _What it is_, _Users_,
-   _Data model_ (planned) and _Roadmap_ in `docs/PRD.md`; replace the placeholder paragraph at the top
+   _Data model_ (planned) and _Roadmap_ in `docs/PRD.md`, replacing the lines its header flags as template defaults; replace the placeholder paragraph at the top
    of `README.md`; set `APP_DESCRIPTION` in `src/lib/app-config.ts`.
 4. **Remove what the product will not use.** Keep the Users module: it is the reference pattern
    and working admin user management. Remind the user to change the seeded admin password
@@ -35,7 +35,10 @@ does this instead:
    - the gallery `src/app/(app)/components/page.tsx` — keep only as a reference
    - `@/lib/persian` and `@/lib/validators/iran` with their tests — if no Persian input or Iranian identifiers are handled
    - `.claude/` — if Claude Code is not used
-5. **Delete this section.** From here on the PRD is the product and the rest of this file is the
+5. **Delete this section and the pointers to it**: the first bullet under _Workflow_ and the first
+   row of the decision flow in `CLAUDE.md`, and the sentence under _Your first feature_ in
+   `README.md` that describes this session (`grep -n 'Before the first feature' README.md CLAUDE.md`
+   must come back empty). From here on the PRD is the product and the rest of this file is the
    engineering contract.
 
 ## What ships, what does not
@@ -144,7 +147,7 @@ Type-only imports are always allowed. `npm run lint` fails on violations.
 
 ### Locale and direction
 
-- `src/lib/locale.ts` decides language, direction, calendar, numerals, time zone and currency (set once by `setup.sh --locale`). Never hardcode a direction, a BCP-47 tag, a numbering system or a calendar; read the profile.
+- `src/lib/locale.ts` decides language, direction, calendar, numerals, time zone and currency (fixed at project setup). Never hardcode a direction, a BCP-47 tag, a numbering system or a calendar; read the profile.
 - Strings go through `t()` / `tp()`. Numbers, dates and currency through `@/lib/format`.
 - The UI kit is written with logical Tailwind utilities (`ms- me- ps- pe- start- end- border-s border-e rounded-s rounded-e text-start text-end`) and logical overlay sides (`side="start" | "end"` on Tooltip, Popover, DropdownMenu, Sheet content). Keep new code in the same style.
 
