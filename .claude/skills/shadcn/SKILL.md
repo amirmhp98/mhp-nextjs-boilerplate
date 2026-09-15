@@ -278,9 +278,9 @@ npx shadcn@latest view owner/repo/item
 
 ## In this repo
 
-- **Never import the external UI package directly** (ESLint blocks it). Import primitives from `@/components/ui/*` and composed/interactive widgets from `@/components/UiComponents`. That barrel applies `dir="rtl"` defaults to Select, Popover, Table, Pagination and friends.
-- The UI is **RTL-first, Persian**. Use logical utilities only: `ms-* me-* ps-* pe-* start-* end-* border-s border-e`. `npm run lint:rtl` fails on `ml/mr/pl/pr/left/right`.
-- Icons that imply direction must be mirrored for RTL (`PanelRight*` for the sidebar toggle, `rtl:rotate-180` on chevrons).
-- Forms: `FormField` from `@/components/UiComponents` + `react-hook-form` + `zodResolver`, with schemas from `src/lib/validations/*` (Persian messages). See `src/app/admin/users/create-user-dialog.tsx`.
+- **Import UI only from `@/components/UiComponents` or `@/components/ui/*`.** `@radix-ui/*`, `sonner`, `react-day-picker` and `input-otp` may be imported inside `src/components/ui/**` only (ESLint + `lint:rtl` enforce it). Components were generated with `rtl: true` in `components.json`.
+- Layout follows the locale profile (`src/lib/locale.ts`). Logical utilities only: `ms-* me-* ps-* pe-* start-* end-* border-s border-e`; overlays take `side="start|end"`. `npm run lint:rtl` fails on physical ones.
+- Directional icons flip: chevrons/arrows get `rtl:rotate-180`, panel icons get `rtl:-scale-x-100`.
+- Forms: `FormField` from `@/components/UiComponents` + `react-hook-form` + `zodResolver`, with schemas from `src/lib/validations/*` (messages via `t()`). See `src/app/(app)/admin/users/create-user-dialog.tsx`.
 - Theme tokens live in `src/app/globals.css` (brand hue/saturation at the top). Do not hardcode hex colors.
 - Component showcase for visual reference: `/components` (behind login).

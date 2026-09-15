@@ -216,7 +216,7 @@ Read `references/pro-rules.md` and run through its canonical Pre-Delivery Checkl
 ## In this repo
 
 - Run the search script from the **repository root**: `python3 .claude/skills/ui-ux-pro-max/scripts/search.py "<query>" --domain <domain>`.
-- Product context: an internal, RTL-first **Persian** admin/dashboard app. Typeface is Yekan Bakh (already configured); do not suggest Latin display fonts for body text. Line-height is intentionally 1.6 for Persian readability.
+- Product context: an internal admin/dashboard app. The locale profile in `src/lib/locale.ts` decides direction, calendar and numerals (Persian/RTL/Jalali by default, English/LTR with `NEXT_PUBLIC_LOCALE=en`). Typeface is Yekan Bakh under `[lang="fa"]`; line-height is 1.6 for Persian readability.
 - Dark mode is the default; light mode must stay usable (theme toggle in the header). Colors derive from `--brand-hue` in `src/app/globals.css`.
-- Numbers and dates render in Persian digits via `src/lib/format-number.ts` and `src/lib/format-date.ts` (Jalali calendar, Asia/Tehran).
+- Numbers, dates and currency go through `@/lib/format` (Intl-based, follows the profile). Strings go through `t()` from `@/lib/t`.
 - Accessibility baseline already in place: skip link, `aria-label`s on icon buttons, `role="alert"` on form errors, labels bound to inputs through `FormField`. Keep it that way.

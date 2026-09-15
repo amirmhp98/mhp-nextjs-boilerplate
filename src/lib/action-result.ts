@@ -1,6 +1,7 @@
 import type { ZodError } from 'zod';
 import { ServiceError } from '@/lib/errors';
 import { logger } from '@/lib/logger';
+import { t } from '@/lib/t';
 
 /**
  * Uniform return type for server actions. Client components switch on `ok`;
@@ -12,8 +13,7 @@ import { logger } from '@/lib/logger';
 export type FieldErrors = Record<string, string[]>;
 
 export type ActionResult<T = void> =
-  | { ok: true; data: T }
-  | { ok: false; error: string; fieldErrors?: FieldErrors };
+  { ok: true; data: T } | { ok: false; error: string; fieldErrors?: FieldErrors };
 
 export function ok(): ActionResult<void>;
 export function ok<T>(data: T): ActionResult<T>;
@@ -32,12 +32,12 @@ export function fromZodError(error: ZodError): ActionResult<never> {
     const key = issue.path.map(String).join('.') || '_';
     (fieldErrors[key] ??= []).push(issue.message);
   }
-  return fail(error.issues[0]?.message ?? 'ورودی نامعتبر است', fieldErrors);
+  return fail(error.issues[0]?.message ?? t('validation.invalid'), fieldErrors);
 }
 
-/** ServiceError → its message. Anything else is logged and replaced by a generic message. */
+/** ServiceError → its (already localised) message. Anything else is logged and replaced by a generic one. */
 export function fromError(error: unknown): ActionResult<never> {
   if (error instanceof ServiceError) return fail(error.message);
   logger.error({ err: error }, 'Unhandled error in server action');
-  return fail('خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید.');
+  return fail(t('errors.unexpected'));
 }

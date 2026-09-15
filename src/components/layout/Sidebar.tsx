@@ -14,6 +14,7 @@ import {
 } from '@/components/UiComponents';
 import { logoutAction } from '@/actions/auth.actions';
 import { APP_NAME } from '@/lib/app-config';
+import { t } from '@/lib/t';
 import { isNavItemActive, visibleNavGroups, type NavGroup, type NavItem } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
 import { useAuth } from './AuthProvider';
@@ -79,7 +80,7 @@ function CollapsedTooltip({
     <TooltipProvider delayDuration={0}>
       <Tooltip>
         <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side="left" sideOffset={8}>
+        <TooltipContent side="end" sideOffset={8}>
           {label}
         </TooltipContent>
       </Tooltip>
@@ -135,7 +136,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
         </div>
       )}
       <div className="mt-3 border-t border-border/30 pt-3">
-        <CollapsedTooltip label="خروج" collapsed={collapsed}>
+        <CollapsedTooltip label={t('auth.logout')} collapsed={collapsed}>
           <form action={logoutAction}>
             <button
               type="submit"
@@ -145,7 +146,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
               )}
             >
               <LogOut className="h-4.5 w-4.5 shrink-0" />
-              {!collapsed && <span>خروج</span>}
+              {!collapsed && <span>{t('auth.logout')}</span>}
             </button>
           </form>
         </CollapsedTooltip>
@@ -183,8 +184,8 @@ export function Sidebar() {
 
       {/* Mobile drawer */}
       <Sheet open={isMobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="right" className="flex w-60 flex-col p-0">
-          <SheetTitle className="sr-only">منوی ناوبری</SheetTitle>
+        <SheetContent side="start" className="flex w-60 flex-col p-0">
+          <SheetTitle className="sr-only">{t('nav.menuTitle')}</SheetTitle>
           <div className="flex h-14 shrink-0 items-center justify-center border-b border-border px-5">
             <Link href="/" onClick={() => setMobileOpen(false)}>
               <Logo />

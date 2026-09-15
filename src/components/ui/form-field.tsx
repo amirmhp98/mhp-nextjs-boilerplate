@@ -1,25 +1,27 @@
-import * as React from "react"
+'use client';
 
-import { cn } from "@/lib/utils"
+import * as React from 'react';
+
+import { cn } from '@/lib/utils';
 
 export interface FormFieldProps {
-  label: string
-  required?: boolean
-  error?: string
-  helperText?: string
-  children: React.ReactNode
-  className?: string
-  id?: string
+  label: string;
+  required?: boolean;
+  error?: string;
+  helperText?: string;
+  children: React.ReactNode;
+  className?: string;
+  id?: string;
 }
 
 const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
   ({ label, required, error, helperText, children, className, id }, ref) => {
-    const generatedId = React.useId()
-    const fieldId = id ?? generatedId
-    const messageId = `${fieldId}-message`
+    const generatedId = React.useId();
+    const fieldId = id ?? generatedId;
+    const messageId = `${fieldId}-message`;
 
     return (
-      <div ref={ref} className={cn("space-y-1.5", className)}>
+      <div ref={ref} className={cn('space-y-1.5', className)}>
         <label htmlFor={fieldId} className="text-sm font-medium text-foreground">
           {label}
           {required && <span className="text-error ms-0.5">*</span>}
@@ -28,8 +30,8 @@ const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
         {React.isValidElement(children)
           ? React.cloneElement(children as React.ReactElement<Record<string, unknown>>, {
               id: fieldId,
-              "aria-describedby": error || helperText ? messageId : undefined,
-              "aria-invalid": error ? true : undefined,
+              'aria-describedby': error || helperText ? messageId : undefined,
+              'aria-invalid': error ? true : undefined,
             })
           : children}
 
@@ -44,9 +46,9 @@ const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
           </p>
         )}
       </div>
-    )
-  }
-)
-FormField.displayName = "FormField"
+    );
+  },
+);
+FormField.displayName = 'FormField';
 
-export { FormField }
+export { FormField };

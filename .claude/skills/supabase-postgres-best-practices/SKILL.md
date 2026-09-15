@@ -66,7 +66,6 @@ Each rule file contains:
 ## In this repo
 
 - Plain Postgres via **Prisma** (`prisma/schema.prisma`), no Supabase, no RLS: skip the RLS/Supabase-specific references unless the project adopts them.
-- **Table-name rule:** every new table and enum is mapped to a `v2_` prefixed name (`@@map("v2_<table>")`) while the Prisma model keeps a clean name. See `AGENTS.md` → Database safety.
-- Never run `prisma db push --force-reset` or `prisma migrate reset`. Run `prisma db pull` before editing the schema on a shared database.
-- Migrations: `npm run db:migrate` (dev, creates a migration) / `npm run db:deploy` (apply). Commit `prisma/migrations/**`.
+- Migrations are committed under `prisma/migrations/`; every schema change ships with one (`npm run db:migrate -- --name <change>`).
+- Never run `prisma db push --force-reset` or `prisma migrate reset`.
 - Index guidance here applies directly: add `@@index` for foreign keys and common filters (see `Session.userId`, `Session.expiresAt`).

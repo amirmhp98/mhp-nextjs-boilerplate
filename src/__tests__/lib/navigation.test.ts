@@ -3,10 +3,10 @@ import { isNavItemActive, pageTitleFor, visibleNavGroups } from '@/lib/navigatio
 import { sessionCookieOptions } from '@/lib/session-cookie';
 
 describe('navigation', () => {
-  it('hides admin groups from analysts and shows them to admins', () => {
-    const analystTitles = visibleNavGroups({ role: 'ANALYST' }).map((g) => g.title);
+  it('hides admin groups from plain users and shows them to admins', () => {
+    const userTitles = visibleNavGroups({ role: 'USER' }).map((g) => g.title);
     const adminTitles = visibleNavGroups({ role: 'ADMIN' }).map((g) => g.title);
-    expect(analystTitles).not.toContain('مدیریت');
+    expect(userTitles).not.toContain('مدیریت');
     expect(adminTitles).toContain('مدیریت');
   });
 

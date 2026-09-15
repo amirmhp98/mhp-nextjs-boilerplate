@@ -7,14 +7,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Database object names keep the `v2_` prefix (see RULES.md / AGENTS.md).
-// Prisma model and enum names stay clean so code reads `prisma.user`, `UserRole`.
-
 enum UserRole {
   ADMIN
-  ANALYST
-
-  @@map("v2_user_role")
+  USER
 }
 
 // ─── USER ──────────────────────────────────────────
@@ -23,7 +18,7 @@ model User {
   username     String    @unique
   passwordHash String
   fullName     String
-  role         UserRole  @default(ANALYST)
+  role         UserRole  @default(USER)
   isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
   createdAt    DateTime  @default(now())
@@ -32,7 +27,7 @@ model User {
   sessions Session[]
 
   @@index([role])
-  @@map("v2_users")
+  @@map("users")
 }
 
 // ─── SESSION ───────────────────────────────────────
@@ -47,7 +42,7 @@ model Session {
 
   @@index([userId])
   @@index([expiresAt])
-  @@map("v2_sessions")
+  @@map("sessions")
 }
 
-// --- Add your domain models below (remember @@map("v2_<table>")) ---
+// --- Add your domain models below ---

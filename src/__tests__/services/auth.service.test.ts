@@ -102,7 +102,7 @@ describe('findUserBySessionToken', () => {
   it('returns null for an expired session', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...sessionFactory.build({ expiresAt: new Date(Date.now() - 1000) }),
-      user: { id: 'u', username: 'u', fullName: 'U', role: 'ANALYST', isActive: true },
+      user: { id: 'u', username: 'u', fullName: 'U', role: 'USER', isActive: true },
     } as never);
 
     expect(await findUserBySessionToken(rawToken)).toBeNull();
@@ -111,7 +111,7 @@ describe('findUserBySessionToken', () => {
   it('returns null when the user has been deactivated', async () => {
     prismaMock.session.findUnique.mockResolvedValue({
       ...sessionFactory.build(),
-      user: { id: 'u', username: 'u', fullName: 'U', role: 'ANALYST', isActive: false },
+      user: { id: 'u', username: 'u', fullName: 'U', role: 'USER', isActive: false },
     } as never);
 
     expect(await findUserBySessionToken(rawToken)).toBeNull();

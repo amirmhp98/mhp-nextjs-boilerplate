@@ -17,7 +17,7 @@ import type { AuthUser } from '@/types/auth';
 const MOCK_USER: AuthUser = {
   id: 'mock-user-id',
   username: 'admin',
-  fullName: 'کاربر آزمایشی',
+  fullName: 'Admin',
   role: 'ADMIN',
   isActive: true,
 };

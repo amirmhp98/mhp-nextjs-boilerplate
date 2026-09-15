@@ -1,39 +1,40 @@
 import { z } from 'zod';
+import { t } from '@/lib/t';
 
 /**
  * Shared by server actions (runtime validation) and client forms (zodResolver).
- * Deliberately free of Prisma imports so it can ship to the browser.
+ * Free of Prisma imports so it can ship to the browser; messages come from the
+ * active locale's dictionary.
  */
 
-export const USER_ROLES = ['ADMIN', 'ANALYST'] as const;
+export const USER_ROLES = ['ADMIN', 'USER'] as const;
 export type UserRoleValue = (typeof USER_ROLES)[number];
 
-export const USER_ROLE_LABELS: Record<UserRoleValue, string> = {
-  ADMIN: 'مدیر',
-  ANALYST: 'تحلیلگر',
-};
+export function userRoleLabel(role: UserRoleValue): string {
+  return t(`users.role.${role}`);
+}
 
 const username = z
   .string()
   .trim()
-  .min(3, 'نام کاربری باید حداقل ۳ کاراکتر باشد')
-  .max(32, 'نام کاربری حداکثر ۳۲ کاراکتر است')
-  .regex(/^[a-z0-9._-]+$/i, 'فقط حروف لاتین، عدد، نقطه، خط تیره و زیرخط مجاز است');
+  .min(3, t('validation.usernameMin', { min: 3 }))
+  .max(32, t('validation.usernameMax', { max: 32 }))
+  .regex(/^[a-z0-9._-]+$/i, t('validation.usernameChars'));
 
 const password = z
   .string()
-  .min(8, 'رمز عبور باید حداقل ۸ کاراکتر باشد')
-  .max(128, 'رمز عبور حداکثر ۱۲۸ کاراکتر است');
+  .min(8, t('validation.passwordMin', { min: 8 }))
+  .max(128, t('validation.passwordMax', { max: 128 }));
 
 const fullName = z
   .string()
   .trim()
-  .min(2, 'نام کامل الزامی است')
-  .max(80, 'نام کامل حداکثر ۸۰ کاراکتر است');
+  .min(2, t('validation.fullNameMin'))
+  .max(80, t('validation.fullNameMax', { max: 80 }));
 
-const role = z.enum(USER_ROLES, { message: 'نقش نامعتبر است' });
+const role = z.enum(USER_ROLES, { message: t('validation.roleInvalid') });
 
-export const userIdSchema = z.string().min(1, 'شناسه کاربر نامعتبر است');
+export const userIdSchema = z.string().min(1, t('validation.userIdInvalid'));
 
 export const createUserSchema = z.object({ username, password, fullName, role });
 export type CreateUserInput = z.infer<typeof createUserSchema>;

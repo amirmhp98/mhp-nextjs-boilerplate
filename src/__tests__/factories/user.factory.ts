@@ -10,7 +10,7 @@ export const userFactory = Factory.define<User>(({ sequence }) => ({
   username: `user${sequence}`,
   passwordHash: '$2a$12$placeholderplaceholderplaceholderplaceholderplaceho',
   fullName: faker.person.fullName(),
-  role: 'ANALYST',
+  role: 'USER',
   isActive: true,
   lastLoginAt: null,
   createdAt: faker.date.past(),

@@ -15,7 +15,7 @@ const admin = {
   role: 'ADMIN' as const,
   isActive: true,
 };
-const analyst = { ...admin, id: 'b', username: 'ana', role: 'ANALYST' as const };
+const plainUser = { ...admin, id: 'b', username: 'ana', role: 'USER' as const };
 const cookieStore = { get: vi.fn() };
 
 beforeEach(() => {
@@ -46,7 +46,7 @@ describe('requireAuth / requireAdmin', () => {
 
   it('requireAdmin sends non-admins home', async () => {
     cookieStore.get.mockReturnValue({ value: 'tok' });
-    vi.mocked(findUserBySessionToken).mockResolvedValue(analyst);
+    vi.mocked(findUserBySessionToken).mockResolvedValue(plainUser);
     await expect(requireAdmin()).rejects.toThrow('NEXT_REDIRECT:/');
   });
 

@@ -1,13 +1,16 @@
 import { createHash, randomBytes } from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { env } from '@/lib/env';
+import { ServiceError } from '@/lib/errors';
 import { prisma } from '@/lib/prisma';
+import { t } from '@/lib/t';
 import type { AuthUser } from '@/types/auth';
 
 /**
- * Authentication service: credentials, session tokens, password hashing.
- * Framework-free — no `next/*`, no cookies. Callers (actions, lib/auth) own
- * the HTTP side. Everything here is unit-testable with a mocked Prisma client.
+ * Authentication service: credentials, session tokens, password hashing,
+ * login throttling. Framework-free — no `next/*`, no cookies. Callers
+ * (actions, lib/auth) own the HTTP side. Everything here is unit-testable
+ * with a mocked Prisma client.
  */
 
 const BCRYPT_ROUNDS = 12;
@@ -37,6 +40,46 @@ export function hashSessionToken(rawToken: string): string {
   return createHash('sha256').update(rawToken).digest('hex');
 }
 
+// ─── Login throttling ────────────────────────────────────────────────────
+// Per-username sliding window kept in process memory. Good enough for a single
+// instance; swap `attemptStore` for Redis/DB when running several replicas.
+
+export const LOGIN_MAX_ATTEMPTS = 5;
+export const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+
+type AttemptRecord = { count: number; firstAt: number };
+const attemptStore = new Map<string, AttemptRecord>();
+
+function attemptsFor(username: string, now: number): AttemptRecord {
+  const record = attemptStore.get(username);
+  if (!record || now - record.firstAt > LOGIN_WINDOW_MS) return { count: 0, firstAt: now };
+  return record;
+}
+
+/** Throws `ServiceError('TOO_MANY_ATTEMPTS')` while the username is locked out. */
+export function assertLoginAllowed(username: string, now = Date.now()): void {
+  const record = attemptsFor(username, now);
+  if (record.count < LOGIN_MAX_ATTEMPTS) return;
+  const minutes = Math.max(1, Math.ceil((record.firstAt + LOGIN_WINDOW_MS - now) / 60_000));
+  throw new ServiceError(t('auth.errors.tooManyAttempts', { minutes }), 'TOO_MANY_ATTEMPTS');
+}
+
+export function recordLoginFailure(username: string, now = Date.now()): void {
+  const record = attemptsFor(username, now);
+  attemptStore.set(username, { count: record.count + 1, firstAt: record.firstAt });
+}
+
+export function clearLoginFailures(username: string): void {
+  attemptStore.delete(username);
+}
+
+/** Test hook. */
+export function resetLoginThrottle(): void {
+  attemptStore.clear();
+}
+
+// ─── Sessions ────────────────────────────────────────────────────────────
+
 export type AuthenticateResult = {
   user: AuthUser;
   /** Raw token for the cookie. Never persisted. */
@@ -44,15 +87,25 @@ export type AuthenticateResult = {
   expiresAt: Date;
 };
 
-/** Verify credentials and open a session. Returns null on any failure (same message for all). */
+/**
+ * Verify credentials and open a session. Returns null on bad credentials or an
+ * inactive user (same outcome for both, so nothing is leaked). Throws
+ * `ServiceError('TOO_MANY_ATTEMPTS')` when the username is throttled.
+ */
 export async function authenticate(
   username: string,
   password: string,
 ): Promise<AuthenticateResult | null> {
+  assertLoginAllowed(username);
+
   const user = await prisma.user.findUnique({ where: { username } });
   const passwordHash = user?.passwordHash ?? (await dummyHash);
   const valid = await bcrypt.compare(password, passwordHash);
-  if (!user || !valid || !user.isActive) return null;
+  if (!user || !valid || !user.isActive) {
+    recordLoginFailure(username);
+    return null;
+  }
+  clearLoginFailures(username);
 
   const token = randomBytes(32).toString('hex');
   const now = new Date();

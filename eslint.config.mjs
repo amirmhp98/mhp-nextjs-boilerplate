@@ -2,12 +2,18 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import nextVitals from 'eslint-config-next/core-web-vitals';
 import nextTs from 'eslint-config-next/typescript';
 
-/**
- * Restricts which layers may import which. Type-only imports are always
- * allowed, so components can still use `import type { User } from '@prisma/client'`.
- */
-const layer = (files, patterns) => ({
+// ─── UI import boundary ─────────────────────────────────────────────────
+// UI primitives may only be imported inside src/components/ui/**. App code
+// goes through '@/components/UiComponents' or '@/components/ui/*' so RTL/LTR
+// behaviour, direction and locale stay consistent.
+const UI_PRIMITIVE_REGEX = '^(@radix-ui/|sonner$|react-day-picker(/|$)|input-otp$)';
+
+// ─── Architecture layers ────────────────────────────────────────────────
+// Type-only imports are always allowed, so a component can still write
+// `import type { User } from '@prisma/client'`.
+const layer = (files, patterns, ignores = []) => ({
   files,
+  ignores,
   rules: {
     '@typescript-eslint/no-restricted-imports': [
       'error',
@@ -35,19 +41,18 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
 
-  // ─── UI library boundary (RTL/FA wrappers) ──────────────────────────
   {
     files: ['src/**/*.{ts,tsx}'],
-    ignores: ['src/components/UiComponents.tsx'],
+    ignores: ['src/components/ui/**'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          paths: [
+          patterns: [
             {
-              name: '@parto-system-design/ui',
+              regex: UI_PRIMITIVE_REGEX,
               message:
-                "Use local wrappers from '@/components/UiComponents' or '@/components/ui/*' for consistent RTL/FA behavior.",
+                "Import UI from '@/components/UiComponents' or '@/components/ui/*' so RTL/LTR and locale behaviour stay consistent.",
             },
           ],
         },
@@ -55,32 +60,13 @@ const eslintConfig = defineConfig([
     },
   },
 
-  // ─── Architecture layers ─────────────────────────────────────────────
   // Shared components: no Prisma, no services (they get data via props or actions).
   layer(['src/components/**/*.{ts,tsx}'], [NO_PRISMA, NO_SERVICES]),
   // Client islands inside app/ (anything that is not a route-segment file): same rule.
-  {
-    files: ['src/app/**/*.{ts,tsx}'],
-    ignores: [SERVER_ROUTE_FILES],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        { patterns: [NO_PRISMA, NO_SERVICES].map((p) => ({ ...p, allowTypeImports: true })) },
-      ],
-    },
-  },
+  layer(['src/app/**/*.{ts,tsx}'], [NO_PRISMA, NO_SERVICES], [SERVER_ROUTE_FILES]),
   // Server route files may read through services, but never through Prisma directly.
   // (The health route is the one sanctioned exception: it pings the DB.)
-  {
-    files: [SERVER_ROUTE_FILES],
-    ignores: ['src/app/api/health/route.ts'],
-    rules: {
-      '@typescript-eslint/no-restricted-imports': [
-        'error',
-        { patterns: [{ ...NO_PRISMA, allowTypeImports: true }] },
-      ],
-    },
-  },
+  layer([SERVER_ROUTE_FILES], [NO_PRISMA], ['src/app/api/health/route.ts']),
   // services/ → framework-free business logic
   layer(
     ['src/services/**/*.ts'],
@@ -92,7 +78,7 @@ const eslintConfig = defineConfig([
       },
     ],
   ),
-  // actions/ → thin: no UI
+  // actions/ → thin: no UI, no direct Prisma
   layer(
     ['src/actions/**/*.ts'],
     [

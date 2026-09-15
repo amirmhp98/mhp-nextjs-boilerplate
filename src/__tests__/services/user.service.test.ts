@@ -29,7 +29,7 @@ describe('createUser', () => {
     username: 'newbie',
     password: 'longenough',
     fullName: 'تازه وارد',
-    role: 'ANALYST' as const,
+    role: 'USER' as const,
   };
 
   it('hashes the password and stores the user', async () => {
@@ -76,7 +76,7 @@ describe('updateUser', () => {
     );
 
     await expect(
-      updateUser(ADMIN_ID, { fullName: 'x', role: 'ANALYST' }, ADMIN_ID),
+      updateUser(ADMIN_ID, { fullName: 'x', role: 'USER' }, ADMIN_ID),
     ).rejects.toBeInstanceOf(ServiceError);
     expect(prismaMock.user.update).not.toHaveBeenCalled();
   });
@@ -95,7 +95,7 @@ describe('updateUser', () => {
   it('throws USER_NOT_FOUND for an unknown id', async () => {
     prismaMock.user.findUnique.mockResolvedValue(null);
     await expect(
-      updateUser('nope', { fullName: 'x', role: 'ANALYST' }, ADMIN_ID),
+      updateUser('nope', { fullName: 'x', role: 'USER' }, ADMIN_ID),
     ).rejects.toMatchObject({
       code: 'USER_NOT_FOUND',
     });

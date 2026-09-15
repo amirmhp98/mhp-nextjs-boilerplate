@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/UiComponents';
 import { AlertTriangle, RotateCcw } from 'lucide-react';
+import { t } from '@/lib/t';
 
 export default function Error({
   error,
@@ -16,17 +17,17 @@ export default function Error({
         <AlertTriangle className="h-8 w-8 text-destructive" />
       </div>
       <div className="space-y-2">
-        <h2 className="text-xl font-bold">خطایی رخ داد</h2>
-        <p className="text-sm text-muted-foreground max-w-md">
-          مشکلی در بارگذاری این صفحه پیش آمده است. لطفاً دوباره تلاش کنید.
-        </p>
+        <h2 className="text-xl font-bold">{t('error.title')}</h2>
+        <p className="text-sm text-muted-foreground max-w-md">{t('error.description')}</p>
         {error.digest && (
-          <p className="text-xs text-muted-foreground/50 font-mono">کد خطا: {error.digest}</p>
+          <p className="text-xs text-muted-foreground/50 font-mono">
+            {t('error.code', { digest: error.digest })}
+          </p>
         )}
       </div>
       <Button onClick={reset} variant="outline">
         <RotateCcw className="h-4 w-4" />
-        تلاش مجدد
+        {t('error.retry')}
       </Button>
     </div>
   );

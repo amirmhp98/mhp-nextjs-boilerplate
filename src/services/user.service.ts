@@ -1,6 +1,7 @@
 import type { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { ServiceError } from '@/lib/errors';
+import { t } from '@/lib/t';
 import type { CreateUserInput, UpdateUserInput } from '@/lib/validations/user';
 import { hashPassword, revokeAllSessions } from '@/services/auth.service';
 
@@ -30,7 +31,7 @@ export function listUsers(): Promise<UserListItem[]> {
 
 export async function createUser(input: CreateUserInput): Promise<UserListItem> {
   const taken = await prisma.user.findUnique({ where: { username: input.username } });
-  if (taken) throw new ServiceError('این نام کاربری قبلاً استفاده شده است', 'USERNAME_TAKEN');
+  if (taken) throw new ServiceError(t('users.errors.usernameTaken'), 'USERNAME_TAKEN');
 
   const passwordHash = await hashPassword(input.password);
   return prisma.user.create({
@@ -52,7 +53,7 @@ export async function updateUser(
 ): Promise<UserListItem> {
   const user = await requireUser(userId);
   if (userId === actorId && input.role !== user.role) {
-    throw new ServiceError('نمی‌توانید نقش خود را تغییر دهید', 'SELF_ROLE_CHANGE');
+    throw new ServiceError(t('users.errors.cannotChangeOwnRole'), 'SELF_ROLE_CHANGE');
   }
   return prisma.user.update({ where: { id: userId }, data: input, select: USER_LIST_SELECT });
 }
@@ -64,7 +65,7 @@ export async function setUserActive(
   actorId: string,
 ): Promise<UserListItem> {
   if (!isActive && userId === actorId) {
-    throw new ServiceError('نمی‌توانید حساب خود را غیرفعال کنید', 'SELF_DEACTIVATE');
+    throw new ServiceError(t('users.errors.cannotDeactivateSelf'), 'SELF_DEACTIVATE');
   }
   await requireUser(userId);
   const updated = await prisma.user.update({
@@ -86,6 +87,6 @@ export async function resetPassword(userId: string, newPassword: string): Promis
 
 async function requireUser(userId: string) {
   const user = await prisma.user.findUnique({ where: { id: userId } });
-  if (!user) throw new ServiceError('کاربر یافت نشد', 'USER_NOT_FOUND');
+  if (!user) throw new ServiceError(t('users.errors.notFound'), 'USER_NOT_FOUND');
   return user;
 }

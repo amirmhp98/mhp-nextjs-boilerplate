@@ -306,7 +306,7 @@ After writing or modifying tests:
 
 - Config: `e2e/playwright.config.ts`. Run with `npm run test:e2e`; needs Postgres (`npm run db:up && npm run db:deploy && npm run db:seed`). `PORT=3001 npm run test:e2e` runs beside another dev server.
 - Projects: `setup` (logs in once, saves `e2e/.auth/user.json`), `auth` (no stored state, exercises login/logout), `chromium` (everything else, pre-authenticated as admin).
-- Locators: prefer `getByRole`/`getByLabel` with the **Persian** copy. The login error uses `getByTestId('login-error')` because Next's route announcer also has `role="alert"`. Table rows expose `data-testid="user-row-<username>"`.
+- Locators: prefer `getByRole`/`getByLabel` and read the copy through `t()` from `../src/lib/t` so specs pass for either locale profile. The login error uses `getByTestId('login-error')` because Next's route announcer also has `role="alert"`. Table rows expose `data-testid="user-row-<username>"`.
 - Headings: the sidebar renders section titles as `<h3>`, so scope page headings with `{ level: 2 }`.
-- Fixtures: `e2e/helpers/auth.ts` (`login`, `ADMIN`). Locale/timezone are `fa-IR` / `Asia/Tehran`.
+- Fixtures: `e2e/helpers/auth.ts` (`login`, `logout`, `ADMIN`). Browser locale/timezone follow the profile in `src/lib/locale.ts`.
 - CI runs the suite in `.github/workflows/ci.yml` against a Postgres service; the HTML report is uploaded on failure.

@@ -1,5 +1,6 @@
 import type { ComponentType } from 'react';
 import { Home, Layers, Users } from 'lucide-react';
+import { t } from '@/lib/t';
 import type { AuthUser } from '@/types/auth';
 
 /**
@@ -7,7 +8,8 @@ import type { AuthUser } from '@/types/auth';
  * the Header derives page titles from it, and admin-only entries are hidden
  * for non-admins here rather than in each component.
  *
- * To add a page: add a NavItem. To add a section: add a NavGroup.
+ * To add a page: add a NavItem (and its label to src/messages). To add a
+ * section: add a NavGroup.
  */
 export type NavItem = {
   label: string;
@@ -27,18 +29,18 @@ export type NavGroup = {
 
 export const NAV_GROUPS: NavGroup[] = [
   {
-    title: 'داشبورد',
-    items: [{ label: 'خانه', href: '/', icon: Home }],
+    title: t('nav.group.dashboard'),
+    items: [{ label: t('nav.home'), href: '/', icon: Home }],
   },
   {
-    title: 'ابزارها',
+    title: t('nav.group.tools'),
     secondary: true,
-    items: [{ label: 'کامپوننت‌ها', href: '/components', icon: Layers, secondary: true }],
+    items: [{ label: t('nav.components'), href: '/components', icon: Layers, secondary: true }],
   },
   {
-    title: 'مدیریت',
+    title: t('nav.group.admin'),
     adminOnly: true,
-    items: [{ label: 'کاربران', href: '/admin/users', icon: Users, adminOnly: true }],
+    items: [{ label: t('nav.users'), href: '/admin/users', icon: Users, adminOnly: true }],
   },
 ];
 

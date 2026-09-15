@@ -18,7 +18,7 @@ describe('createUserSchema', () => {
     username: 'new.user',
     password: 'longenough',
     fullName: 'کاربر',
-    role: 'ANALYST',
+    role: 'USER',
   };
 
   it('accepts a valid payload', () => {

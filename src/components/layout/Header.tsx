@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { LogOut, Menu, PanelRightClose, PanelRightOpen, Shield } from 'lucide-react';
+import { LogOut, Menu, PanelLeftClose, PanelLeftOpen, Shield } from 'lucide-react';
 import {
   Avatar,
   AvatarFallback,
@@ -13,10 +13,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  Ltr,
   Separator,
 } from '@/components/UiComponents';
 import { logoutAction } from '@/actions/auth.actions';
 import { pageTitleFor } from '@/lib/navigation';
+import { t } from '@/lib/t';
 import { useAuth } from './AuthProvider';
 import { useSidebar } from './SidebarContext';
 import { ThemeToggle } from './ThemeToggle';
@@ -46,7 +48,7 @@ export function Header() {
             size="icon"
             className="md:hidden"
             onClick={() => setMobileOpen(true)}
-            aria-label="منوی ناوبری"
+            aria-label={t('shell.openMenu')}
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -56,12 +58,12 @@ export function Header() {
             size="icon"
             className="hidden md:inline-flex"
             onClick={toggleCollapse}
-            aria-label={isCollapsed ? 'باز کردن منوی کناری' : 'بستن منوی کناری'}
+            aria-label={isCollapsed ? t('shell.expandSidebar') : t('shell.collapseSidebar')}
           >
             {isCollapsed ? (
-              <PanelRightOpen className="h-5 w-5" />
+              <PanelLeftOpen className="h-5 w-5 rtl:-scale-x-100" />
             ) : (
-              <PanelRightClose className="h-5 w-5" />
+              <PanelLeftClose className="h-5 w-5 rtl:-scale-x-100" />
             )}
           </Button>
 
@@ -76,6 +78,7 @@ export function Header() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
+                data-testid="user-menu"
                 className="flex items-center gap-3 rounded-lg px-2 py-1.5 outline-none transition-colors hover:bg-muted/50"
               >
                 <div className="hidden text-start text-xs md:block">
@@ -86,11 +89,13 @@ export function Header() {
                         variant="outline"
                         className="h-4 border-primary/30 px-1.5 py-0 text-2xs text-primary"
                       >
-                        مدیر
+                        {t('shell.adminBadge')}
                       </Badge>
                     )}
                   </div>
-                  <div className="text-muted-foreground">{user.username}</div>
+                  <div className="text-muted-foreground">
+                    <Ltr>{user.username}</Ltr>
+                  </div>
                 </div>
                 <Avatar className="h-9 w-9 border-2 border-background ring-1 ring-border">
                   <AvatarFallback className="text-xs font-semibold">
@@ -103,11 +108,13 @@ export function Header() {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col gap-1">
                   <p className="text-sm font-medium">{user.fullName}</p>
-                  <p className="text-xs text-muted-foreground">{user.username}</p>
+                  <p className="text-xs text-muted-foreground">
+                    <Ltr>{user.username}</Ltr>
+                  </p>
                   {user.role === 'ADMIN' && (
                     <div className="flex items-center gap-1 text-xs text-primary">
                       <Shield className="h-3 w-3" />
-                      <span>مدیر سیستم</span>
+                      <span>{t('shell.adminRole')}</span>
                     </div>
                   )}
                 </div>
@@ -120,7 +127,7 @@ export function Header() {
                     className="w-full cursor-pointer text-destructive focus:text-destructive"
                   >
                     <LogOut className="me-2 h-4 w-4" />
-                    خروج
+                    {t('auth.logout')}
                   </button>
                 </DropdownMenuItem>
               </form>

@@ -155,7 +155,8 @@ See [debug-tricks.md](./debug-tricks.md) for:
 ## In this repo
 
 - **Version-matched docs live in `node_modules/next/dist/docs/`.** Read the relevant page there before writing framework code; this skill is a summary, the bundled docs are the source of truth for the installed Next.js version.
-- Auth is checked in **both** the layout and the page (`src/app/admin/users/page.tsx`) because layouts and pages render in parallel. Never rely on a layout alone to protect a page's data fetch.
+- Auth is checked in **both** the layout and the page (`src/app/(app)/admin/users/page.tsx`) because layouts and pages render in parallel. Never rely on a layout alone to protect a page's data fetch.
 - `src/proxy.ts` is the request proxy (Next.js 16 name for middleware). It only checks cookie presence; real session validation is `requireAuth()` in `src/lib/auth.ts`.
 - Server code that must never reach the client imports `'server-only'` (`src/lib/env.ts`, `src/lib/prisma.ts`, `src/lib/auth.ts`).
+- Route groups: `(auth)` for bare pages, `(app)` for the authenticated shell (its layout runs `requireAuth()`), `admin/` inside it runs `requireAdmin()`.
 - Read `AGENTS.md` for the layering rules; ESLint enforces them.

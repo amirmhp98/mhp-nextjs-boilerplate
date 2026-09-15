@@ -32,7 +32,7 @@ const validCreate = {
   username: 'newbie',
   password: 'longenough',
   fullName: 'تازه',
-  role: 'ANALYST',
+  role: 'USER',
 };
 
 beforeEach(() => {

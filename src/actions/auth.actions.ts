@@ -2,7 +2,9 @@
 
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { ServiceError } from '@/lib/errors';
 import { SESSION_COOKIE, sessionCookieOptions } from '@/lib/session-cookie';
+import { t } from '@/lib/t';
 import { loginSchema } from '@/lib/validations/auth';
 import { authenticate, revokeSession } from '@/services/auth.service';
 
@@ -15,11 +17,17 @@ export async function loginAction(_prev: LoginState, formData: FormData): Promis
     password: formData.get('password'),
   });
   if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? 'ورودی نامعتبر است' };
+    return { error: parsed.error.issues[0]?.message ?? t('validation.invalid') };
   }
 
-  const session = await authenticate(parsed.data.username, parsed.data.password);
-  if (!session) return { error: 'نام کاربری یا رمز عبور اشتباه است' };
+  let session;
+  try {
+    session = await authenticate(parsed.data.username, parsed.data.password);
+  } catch (error) {
+    if (error instanceof ServiceError) return { error: error.message };
+    throw error;
+  }
+  if (!session) return { error: t('auth.errors.invalidCredentials') };
 
   (await cookies()).set(SESSION_COOKIE, session.token, sessionCookieOptions(session.expiresAt));
   redirect('/');
