@@ -1,13 +1,16 @@
 import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { prisma } from '@/lib/prisma';
 import { logger } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Liveness + readiness probe. Excluded from the auth proxy (see src/proxy.ts)
+ * so orchestrators get a real 200/503 instead of a redirect.
+ */
 export async function GET() {
   const checks: Record<string, 'ok' | 'error'> = {};
 
-  // Database connectivity
   try {
     await prisma.$queryRaw`SELECT 1`;
     checks.database = 'ok';
@@ -16,10 +19,9 @@ export async function GET() {
     checks.database = 'error';
   }
 
-  const allOk = Object.values(checks).every(v => v === 'ok');
-
+  const healthy = Object.values(checks).every((value) => value === 'ok');
   return NextResponse.json(
-    { status: allOk ? 'healthy' : 'degraded', checks },
-    { status: allOk ? 200 : 503 },
+    { status: healthy ? 'healthy' : 'degraded', checks, timestamp: new Date().toISOString() },
+    { status: healthy ? 200 : 503, headers: { 'Cache-Control': 'no-store' } },
   );
 }

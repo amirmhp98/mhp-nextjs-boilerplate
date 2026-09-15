@@ -1,26 +1,18 @@
-import { PrismaClient } from '@prisma/client';
+import type { PrismaClient } from '@prisma/client';
 import { beforeEach } from 'vitest';
+import { mockReset, type DeepMockProxy } from 'vitest-mock-extended';
 import { prisma } from '@/lib/prisma';
 
-// The prisma module is already mocked in setup.ts via vi.mock('@/lib/prisma')
-// which creates a mockDeep proxy. We just re-export the typed instance here.
-
-// Use a minimal type definition to avoid importing vitest-mock-extended at top level
-// (its CJS entrypoint is incompatible with Vitest ESM mode)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type MockPrismaClient = any;
-
-export const prismaMock = prisma as unknown as MockPrismaClient;
+/** The deep-mocked Prisma client installed by setup.ts, with full Prisma types. */
+export const prismaMock = prisma as unknown as DeepMockProxy<PrismaClient>;
 
 /**
- * Call this in your test file to reset the Prisma mock between tests.
- * Usage:
- *   import { prismaMock, resetPrismaMock } from '../helpers/prisma-mock';
+ * Call once at the top of a test file to reset the mock between tests:
+ *   import { prismaMock, resetPrismaMock } from '@/__tests__/helpers/prisma-mock';
  *   resetPrismaMock();
  */
 export function resetPrismaMock() {
-  beforeEach(async () => {
-    const { mockReset } = await import('vitest-mock-extended');
+  beforeEach(() => {
     mockReset(prismaMock);
   });
 }

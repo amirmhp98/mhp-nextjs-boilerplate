@@ -1,9 +1,27 @@
 import { vi } from 'vitest';
+import type { PrismaClient } from '@prisma/client';
 
-// Mock Next.js modules that aren't available in test environment
+// `server-only` throws outside a React Server Components bundle; make it inert here.
+vi.mock('server-only', () => ({}));
+
+// Validated env — deterministic values so tests never read a real .env.
+vi.mock('@/lib/env', () => ({
+  env: {
+    NODE_ENV: 'test',
+    DATABASE_URL: 'postgresql://test:test@localhost:5432/test',
+    SESSION_MAX_AGE_DAYS: 7,
+    SKIP_AUTH: false,
+    LOG_LEVEL: 'silent',
+    PRISMA_LOG_QUERIES: false,
+  },
+}));
+
 vi.mock('next/navigation', () => ({
   redirect: vi.fn((url: string) => {
     throw new Error(`NEXT_REDIRECT:${url}`);
+  }),
+  notFound: vi.fn(() => {
+    throw new Error('NEXT_NOT_FOUND');
   }),
   useRouter: vi.fn(() => ({
     push: vi.fn(),
@@ -17,54 +35,33 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('next/headers', () => ({
-  cookies: vi.fn(() => ({
+  cookies: vi.fn(async () => ({
     get: vi.fn(),
+    has: vi.fn(() => false),
     set: vi.fn(),
     delete: vi.fn(),
   })),
 }));
 
-// Mock next/cache
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
   revalidateTag: vi.fn(),
 }));
 
-// Mock Prisma singleton — individual tests override via vitest-mock-extended
-// We use a dynamic import shim to avoid CJS/ESM compat issues with vitest-mock-extended
+// Prisma singleton → deep mock. Tests reach it through helpers/prisma-mock.ts.
 vi.mock('@/lib/prisma', async () => {
   const { mockDeep } = await import('vitest-mock-extended');
-  const prismaMock = mockDeep();
-  return {
-    default: prismaMock,
-    prisma: prismaMock,
-    ensureConnected: vi.fn(),
-  };
+  const prismaMock = mockDeep<PrismaClient>();
+  return { default: prismaMock, prisma: prismaMock, ensureConnected: vi.fn() };
 });
 
-// Mock logger to avoid console noise
+// Silence the logger.
 vi.mock('@/lib/logger', () => {
-  const loggerMock = {
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn(),
-    debug: vi.fn(),
-    fatal: vi.fn(),
-    trace: vi.fn(),
-    child: vi.fn(() => ({
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-      debug: vi.fn(),
-    })),
-  };
-  return {
-    default: loggerMock,
-    logger: loggerMock,
-  };
+  const child = { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() };
+  const loggerMock = { ...child, fatal: vi.fn(), trace: vi.fn(), child: vi.fn(() => child) };
+  return { default: loggerMock, logger: loggerMock };
 });
 
-// Silence console.error/warn in tests unless debugging
 if (!process.env.DEBUG_TESTS) {
   vi.spyOn(console, 'error').mockImplementation(() => {});
   vi.spyOn(console, 'warn').mockImplementation(() => {});

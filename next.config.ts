@@ -1,63 +1,38 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
+
+const securityHeaders = [
+  { key: 'X-Content-Type-Options', value: 'nosniff' },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+  { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+  // Browsers ignore HSTS over plain HTTP, so it is safe to send in development too.
+  { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains' },
+];
 
 const nextConfig: NextConfig = {
   reactCompiler: true,
-  output: "standalone",
+  output: 'standalone',
+
+  // pino's pretty transport runs in a worker thread the bundler cannot trace.
+  serverExternalPackages: ['pino', 'pino-pretty'],
 
   images: {
     remotePatterns: [
-      // Add remote image patterns here as needed
+      // Add remote image hosts here as needed.
     ],
   },
 
   experimental: {
     serverActions: {
-      bodySizeLimit: "2mb",
+      bodySizeLimit: '2mb',
     },
-    optimizePackageImports: ["lucide-react"],
+    optimizePackageImports: ['lucide-react'],
   },
 
+  // Next.js already sets immutable Cache-Control on /_next/static and /_next/image;
+  // only security headers are added here.
   async headers() {
-    return [
-      {
-        // Security headers for all routes
-        source: "/(.*)",
-        headers: [
-          {
-            key: "X-Content-Type-Options",
-            value: "nosniff",
-          },
-          {
-            key: "X-Frame-Options",
-            value: "DENY",
-          },
-          {
-            key: "Referrer-Policy",
-            value: "strict-origin-when-cross-origin",
-          },
-        ],
-      },
-      {
-        // Immutable cache for static assets
-        source: "/_next/static/(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=31536000, immutable",
-          },
-        ],
-      },
-      {
-        // Cache for optimized images
-        source: "/_next/image(.*)",
-        headers: [
-          {
-            key: "Cache-Control",
-            value: "public, max-age=86400",
-          },
-        ],
-      },
-    ];
+    return [{ source: '/(.*)', headers: securityHeaders }];
   },
 };
 

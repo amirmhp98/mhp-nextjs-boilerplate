@@ -1,45 +1,41 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Menu, PanelLeftClose, PanelLeftOpen, LogOut, Shield } from 'lucide-react';
+import { LogOut, Menu, PanelRightClose, PanelRightOpen, Shield } from 'lucide-react';
 import {
-  Avatar, AvatarFallback, Separator, Button,
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger,
+  Avatar,
+  AvatarFallback,
   Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  Separator,
 } from '@/components/UiComponents';
-import { useSidebar } from './SidebarContext';
-import { useAuth } from './AuthProvider';
 import { logoutAction } from '@/actions/auth.actions';
+import { pageTitleFor } from '@/lib/navigation';
+import { useAuth } from './AuthProvider';
+import { useSidebar } from './SidebarContext';
 import { ThemeToggle } from './ThemeToggle';
 
-const PAGE_TITLES: Record<string, string> = {
-  '/': 'خانه',
-  '/admin/users': 'مدیریت کاربران',
-  '/components': 'کتابخانه کامپوننت‌ها',
-};
+/** First letters of the first two words. Persian has no case, so no upper-casing. */
+function initialsOf(fullName: string): string {
+  return fullName
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((word) => word[0])
+    .join('');
+}
 
 export function Header() {
   const pathname = usePathname();
   const { isCollapsed, toggleCollapse, setMobileOpen } = useSidebar();
   const user = useAuth();
-
-  const dynamicTitle = '';
-
-  const title =
-    dynamicTitle ||
-    PAGE_TITLES[pathname] ||
-    Object.entries(PAGE_TITLES)
-      .filter(([path]) => path !== '/' && pathname.startsWith(path))
-      .sort(([a], [b]) => b.length - a.length)[0]?.[1] ||
-    '';
-
-  const initials = user.fullName
-    .split(' ')
-    .map((w) => w[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
+  const title = pageTitleFor(pathname);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -63,15 +59,13 @@ export function Header() {
             aria-label={isCollapsed ? 'باز کردن منوی کناری' : 'بستن منوی کناری'}
           >
             {isCollapsed ? (
-              <PanelLeftOpen className="h-5 w-5" />
+              <PanelRightOpen className="h-5 w-5" />
             ) : (
-              <PanelLeftClose className="h-5 w-5" />
+              <PanelRightClose className="h-5 w-5" />
             )}
           </Button>
 
-          <h1 className="text-lg font-bold tracking-tight text-foreground">
-            {title}
-          </h1>
+          <h1 className="text-lg font-bold tracking-tight text-foreground">{title}</h1>
         </div>
 
         <div className="flex items-center gap-4">
@@ -80,12 +74,18 @@ export function Header() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-3 rounded-lg px-2 py-1.5 hover:bg-muted/50 transition-colors outline-none">
-                <div className="hidden md:block text-xs text-start">
-                  <div className="font-medium flex items-center gap-1.5">
+              <button
+                type="button"
+                className="flex items-center gap-3 rounded-lg px-2 py-1.5 outline-none transition-colors hover:bg-muted/50"
+              >
+                <div className="hidden text-start text-xs md:block">
+                  <div className="flex items-center gap-1.5 font-medium">
                     {user.fullName}
                     {user.role === 'ADMIN' && (
-                      <Badge variant="outline" className="text-2xs px-1.5 py-0 h-4 border-primary/30 text-primary">
+                      <Badge
+                        variant="outline"
+                        className="h-4 border-primary/30 px-1.5 py-0 text-2xs text-primary"
+                      >
                         مدیر
                       </Badge>
                     )}
@@ -93,7 +93,9 @@ export function Header() {
                   <div className="text-muted-foreground">{user.username}</div>
                 </div>
                 <Avatar className="h-9 w-9 border-2 border-background ring-1 ring-border">
-                  <AvatarFallback className="text-xs font-semibold">{initials}</AvatarFallback>
+                  <AvatarFallback className="text-xs font-semibold">
+                    {initialsOf(user.fullName)}
+                  </AvatarFallback>
                 </Avatar>
               </button>
             </DropdownMenuTrigger>
@@ -111,13 +113,17 @@ export function Header() {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="text-destructive focus:text-destructive cursor-pointer"
-                onClick={() => logoutAction()}
-              >
-                <LogOut className="h-4 w-4 me-2" />
-                خروج
-              </DropdownMenuItem>
+              <form action={logoutAction}>
+                <DropdownMenuItem asChild>
+                  <button
+                    type="submit"
+                    className="w-full cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut className="me-2 h-4 w-4" />
+                    خروج
+                  </button>
+                </DropdownMenuItem>
+              </form>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

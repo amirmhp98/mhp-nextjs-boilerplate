@@ -1,38 +1,17 @@
-/**
- * Number formatting utilities.
- *
- * Separated from format.ts to work around a Turbopack per-export module
- * splitting + async script loading race condition. When format.ts exports
- * are split across chunks and loaded via async scripts, consumer chunks may
- * execute before the format module registers its exports, causing
- * "formatCompactNumber is not a function" at runtime.
- *
- * Keeping these small, self-contained (no cross-module imports) guarantees
- * Turbopack inlines them directly into each consumer chunk.
- */
+import { APP_LOCALE } from '@/lib/i18n';
 
-const LOCALE = 'fa-IR';
+const standard = new Intl.NumberFormat(APP_LOCALE);
+const compact = new Intl.NumberFormat(APP_LOCALE, {
+  notation: 'compact',
+  maximumFractionDigits: 1,
+});
 
-export function formatNumber(num: number | null | undefined): string {
-  if (num === null || num === undefined) return '0';
-  return new Intl.NumberFormat(LOCALE).format(num);
+/** Persian digits with grouping, e.g. ۱٬۲۳۴٬۵۶۷. «۰» for null. */
+export function formatNumber(value: number | null | undefined): string {
+  return standard.format(value ?? 0);
 }
 
-/**
- * Format a number in compact notation for social metrics.
- * - < 1,000: plain Persian number (e.g. ۸۴۲)
- * - 1,000–999,999: XX.Xk (e.g. 54.4k)
- * - 1,000,000+: X.XXm (e.g. 1.34m)
- */
-export function formatCompactNumber(num: number | null | undefined): string {
-  if (num === null || num === undefined) return '۰';
-  if (num < 1_000) return new Intl.NumberFormat(LOCALE).format(num);
-  if (num < 1_000_000) {
-    const val = num / 1_000;
-    const formatted = val % 1 === 0 ? val.toFixed(0) : val.toFixed(1).replace(/\.0$/, '');
-    return `${formatted}k`;
-  }
-  const val = num / 1_000_000;
-  const formatted = val % 1 === 0 ? val.toFixed(0) : val.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
-  return `${formatted}m`;
+/** Compact Persian notation for dashboards, e.g. ۵۴٫۴ هزار / ۱٫۳ میلیون. */
+export function formatCompactNumber(value: number | null | undefined): string {
+  return compact.format(value ?? 0);
 }

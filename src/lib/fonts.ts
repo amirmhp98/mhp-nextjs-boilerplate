@@ -5,7 +5,8 @@
  * The font is also defined as a CSS variable: var(--font-family)
  */
 
-export const FONT_FAMILY = "'Yekan Bakh', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
+export const FONT_FAMILY =
+  "'Yekan Bakh', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
 
 /**
  * Font family for monospace text (code, technical content)
@@ -18,7 +19,8 @@ export const FONT_FAMILY_MONO = "'Courier New', 'Monaco', 'Menlo', monospace";
  */
 export const getFontFamily = (): string => {
   if (typeof window === 'undefined') return FONT_FAMILY;
-  return getComputedStyle(document.documentElement)
-    .getPropertyValue('--font-family')
-    .trim() || FONT_FAMILY;
+  return (
+    getComputedStyle(document.documentElement).getPropertyValue('--font-family').trim() ||
+    FONT_FAMILY
+  );
 };

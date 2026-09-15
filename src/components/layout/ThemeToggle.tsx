@@ -25,14 +25,14 @@ function getTheme(): 'dark' | 'light' {
 function subscribe(listener: () => void) {
   listeners.push(listener);
   return () => {
-    listeners = listeners.filter(l => l !== listener);
+    listeners = listeners.filter((l) => l !== listener);
   };
 }
 
 function setTheme(theme: 'dark' | 'light') {
   localStorage.setItem('theme', theme);
   applyTheme(theme === 'dark');
-  listeners.forEach(l => l());
+  listeners.forEach((l) => l());
 }
 
 export function ThemeToggle() {

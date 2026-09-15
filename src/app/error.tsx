@@ -21,9 +21,7 @@ export default function Error({
           مشکلی در بارگذاری این صفحه پیش آمده است. لطفاً دوباره تلاش کنید.
         </p>
         {error.digest && (
-          <p className="text-xs text-muted-foreground/50 font-mono">
-            کد خطا: {error.digest}
-          </p>
+          <p className="text-xs text-muted-foreground/50 font-mono">کد خطا: {error.digest}</p>
         )}
       </div>
       <Button onClick={reset} variant="outline">

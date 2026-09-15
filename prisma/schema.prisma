@@ -7,43 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum v2_UserRole {
+// Database object names keep the `v2_` prefix (see RULES.md / AGENTS.md).
+// Prisma model and enum names stay clean so code reads `prisma.user`, `UserRole`.
+
+enum UserRole {
   ADMIN
   ANALYST
+
+  @@map("v2_user_role")
 }
 
 // ─── USER ──────────────────────────────────────────
-model v2_User {
-  id           String      @id @default(cuid())
-  username     String      @unique
+model User {
+  id           String    @id @default(cuid())
+  username     String    @unique
   passwordHash String
   fullName     String
-  role         v2_UserRole @default(ANALYST)
-  isActive     Boolean     @default(true)
+  role         UserRole  @default(ANALYST)
+  isActive     Boolean   @default(true)
   lastLoginAt  DateTime?
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
-  sessions v2_Session[]
+  sessions Session[]
 
-  @@index([username])
   @@index([role])
   @@map("v2_users")
 }
 
 // ─── SESSION ───────────────────────────────────────
-model v2_Session {
+model Session {
   id        String   @id @default(cuid())
   userId    String
-  token     String   @unique
+  /// SHA-256 hex of the raw token stored in the cookie. The raw token is never persisted.
+  tokenHash String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-  user      v2_User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([token])
   @@index([userId])
   @@index([expiresAt])
   @@map("v2_sessions")
 }
 
-// --- Add your domain models below ---
+// --- Add your domain models below (remember @@map("v2_<table>")) ---

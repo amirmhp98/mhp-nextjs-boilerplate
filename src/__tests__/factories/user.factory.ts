@@ -1,22 +1,14 @@
 import { Factory } from 'fishery';
 import { faker } from '@faker-js/faker';
+import type { User } from '@prisma/client';
 
 faker.seed(42);
 
-export const userFactory = Factory.define<{
-  id: string;
-  username: string;
-  passwordHash: string;
-  fullName: string;
-  role: 'ADMIN' | 'ANALYST';
-  isActive: boolean;
-  lastLoginAt: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
-}>(({ sequence }) => ({
+/** Full Prisma `User` rows for mocking `prisma.user.*` results. */
+export const userFactory = Factory.define<User>(({ sequence }) => ({
   id: `user-${sequence}`,
-  username: faker.internet.username().toLowerCase(),
-  passwordHash: faker.string.alphanumeric(60),
+  username: `user${sequence}`,
+  passwordHash: '$2a$12$placeholderplaceholderplaceholderplaceholderplaceho',
   fullName: faker.person.fullName(),
   role: 'ANALYST',
   isActive: true,

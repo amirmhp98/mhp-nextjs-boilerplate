@@ -1,0 +1,26 @@
+# Generated / vendored
+node_modules
+.next
+out
+build
+coverage
+playwright-report
+test-results
+package-lock.json
+next-env.d.ts
+prisma/migrations
+.claude/skills
+.claude/worktrees
+.beads
+
+# TODO(boilerplate-85y): remove once the UI kit replacement lands and the tree is formatted once.
+src/components/ui
+src/components/UiComponents.tsx
+src/app/components/page.tsx
+src/app/globals.css
+
+# Owned by the RTL smoke-check script; formatted when the UI kit work lands.
+scripts/rtl-smoke-check.mjs
+
+# Owned by the UI kit work (boilerplate-85y).
+docs/rtl-fa-checklist.md

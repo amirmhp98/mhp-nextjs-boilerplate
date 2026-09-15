@@ -1,64 +1,50 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
-# dependencies
+# ─── Dependencies ────────────────────────────────────────────
 /node_modules
 /.pnp
 .pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
-# testing
-/coverage
-
-# next.js
+# ─── Build output ────────────────────────────────────────────
 /.next/
 /out/
-
-# production
 /build
+next-env.d.ts
+*.tsbuildinfo
+.next-docs/
 
-# misc
+# ─── Tests ───────────────────────────────────────────────────
+/coverage
+/playwright-report
+/test-results
+/e2e/.auth
+.playwright-mcp/
+
+# ─── Environment ─────────────────────────────────────────────
+# .env.example IS committed. Real secrets never are.
+.env
+.env.local
+.env.*.local
+
+# ─── Prisma (only if generator output is customised) ─────────
+/src/generated/prisma
+
+# ─── Claude Code ─────────────────────────────────────────────
+# .claude/settings.json and .claude/skills/ are committed on purpose.
+.claude/settings.local.json
+.claude/worktrees/
+
+# ─── Beads / Dolt runtime ────────────────────────────────────
+.dolt/
+.beads-credential-key
+
+# ─── Editors & OS ────────────────────────────────────────────
+.idea/
 .DS_Store
-*.pem
 
-# debug
+# ─── Misc ────────────────────────────────────────────────────
+*.pem
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
 .vercel
-
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-/src/generated/prisma
-
-# Dolt database files (added by bd init)
-.dolt/
-*.db
-
-# SQL dump files
-*.sql
-
-.claude/
-
-# logs
-*.log
-
-# screenshots / test images
-*.png
-
-# Playwright MCP
-.playwright-mcp/
-
-# Beads / Dolt files (added by bd init)
-.beads-credential-key

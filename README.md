@@ -1,98 +1,93 @@
 # {{PROJECT_NAME}}
 
-RTL-first (Persian/Farsi) web application boilerplate built with Next.js 16, React 19, Tailwind CSS 4, and Prisma.
+RTL-first (Persian) web application boilerplate: Next.js 16 · React 19 · Tailwind CSS 4 · Prisma 6 · PostgreSQL.
+Built to be driven by AI coding agents: the architecture is enforced by lint, one complete reference
+module shows the pattern, and the agent configuration ships with the repo.
 
-## Quick Start
+## Quick start
+
+Requirements: Node 22 (`.nvmrc`), Docker (for the local database) or any PostgreSQL 14+.
 
 ```bash
-# 1. Run the setup script (replaces placeholders, installs deps)
-./setup.sh
-
-# 2. Configure your database
-#    Edit .env with your PostgreSQL connection string
-
-# 3. Create database tables
-npx prisma migrate dev --name init
-
-# 4. Seed default admin user
-npx tsx prisma/seed.ts
-
-# 5. Start development server
-npm run dev
+./setup.sh my-project     # replaces placeholders, resets git history, installs, creates .env
+npm run db:up             # Postgres in Docker (or edit DATABASE_URL in .env)
+npm run db:deploy         # apply migrations
+npm run db:seed           # admin / admin123
+npm run dev               # http://localhost:3000
 ```
 
-Default admin credentials: `admin` / `admin123`
+Change the default admin password after the first login (Admin → Users → reset password).
 
-### No Database? No Problem
+**No database?** Set `SKIP_AUTH=true` in `.env` to skip login and run UI-only (development only).
 
-Set `SKIP_AUTH=true` in `.env` to bypass authentication and run without a database. Useful for UI development and component previewing.
+## Stack
 
-## Tech Stack
+| Layer    | Technology                                                       |
+| -------- | ---------------------------------------------------------------- |
+| Frontend | Next.js 16 App Router, React 19 (React Compiler), Tailwind CSS 4 |
+| Backend  | Server Actions + route handlers, zod validation                  |
+| Database | PostgreSQL via Prisma 6, migrations committed                    |
+| Auth     | Cookie sessions (hashed tokens), bcrypt, ADMIN / ANALYST roles   |
+| Tests    | Vitest (unit, mocked Prisma), Playwright (e2e against a real DB) |
+| Ops      | Docker multi-stage image, docker-compose, GitHub Actions CI      |
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
-| Backend | Next.js Server Actions + API Routes |
-| Database | PostgreSQL via Prisma ORM |
-| UI Components | RTL-ready shadcn-based design system + custom RTL-safe components |
-| Auth | Cookie-based sessions with bcrypt |
-| Deployment | Docker (standalone Next.js output) |
-
-## Project Structure
+## Project structure
 
 ```
 src/
-  app/           # Next.js App Router pages and layouts
-  actions/       # Server actions (thin wrappers calling services)
-  services/      # Business logic (add your domain logic here)
-  components/
-    ui/          # Base UI components (Button, Card, Input, etc.)
-    layout/      # Layout components (Sidebar, Header, ThemeToggle)
-    common/      # Shared components (SectionHeader)
-    UiComponents.tsx  # Central re-export with RTL wrappers
-  lib/           # Utilities (auth, prisma, i18n, logger, fonts)
-  types/         # TypeScript type definitions
-prisma/          # Database schema and seed
-e2e/             # Playwright end-to-end tests
-docs/            # PRD and checklists
+  app/              routes (page/layout/route + client islands next to them)
+    admin/users/    ← reference module UI
+    api/health/     readiness probe (no auth)
+  actions/          server actions: authorise → validate → service → revalidate
+  services/         business logic, framework-free
+  components/       ui/ primitives · UiComponents.tsx widget barrel · layout/ shell
+  lib/              env, prisma, auth, logger, validations, formatting, navigation
+  __tests__/        unit tests, factories, prisma mock
+prisma/             schema, migrations, seed
+e2e/                Playwright config and specs
+docs/               PRD and checklists
+.claude/            settings.json + vendored skills for Claude Code
+AGENTS.md           rules for any coding agent · CLAUDE.md adds the Claude workflow
 ```
+
+The **Users** module (`services/user.service.ts` → `actions/user.actions.ts` → `app/admin/users/`)
+is the pattern every new feature copies. `AGENTS.md` walks through it step by step.
 
 ## Scripts
 
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start development server |
-| `npm run build` | Production build |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run lint:rtl` | Check for RTL violations (no physical ml/mr/pl/pr) |
-| `npm run lint:all` | Run all linters |
-| `npm run test` | Run unit tests (Vitest) |
-| `npm run test:watch` | Run tests in watch mode |
-| `npm run test:e2e` | Run end-to-end tests (Playwright) |
+| Command                                                                      | Description                                                                                |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `npm run dev` / `build` / `start`                                            | Development server / production build / serve the build                                    |
+| `npm run lint` · `lint:rtl` · `typecheck` · `format`                         | ESLint · logical-direction check · `tsc` · Prettier                                        |
+| `npm run lint:all`                                                           | All of the above (CI gate)                                                                 |
+| `npm run test` · `test:watch` · `test:coverage`                              | Vitest                                                                                     |
+| `npm run test:e2e`                                                           | Playwright (needs Postgres; `PORT=3001 npm run test:e2e` to run beside another dev server) |
+| `npm run db:up`                                                              | Start Postgres with docker compose                                                         |
+| `npm run db:migrate` · `db:deploy` · `db:seed` · `db:studio` · `db:generate` | Prisma                                                                                     |
 
-## Features
+## Working with AI agents
 
-- **RTL-first** — All UI is right-to-left safe, primary language Persian (Farsi)
-- **Dark & Light mode** — Theme toggle with localStorage persistence, no flash
-- **Authentication** — Cookie-based session auth with admin/analyst roles
-- **Component library** — Battle-tested UI components at `/components`
-- **Persian typography** — Yekan Bakh variable font with optimized line heights
-- **Security headers** — X-Content-Type-Options, X-Frame-Options, Referrer-Policy
-- **Docker ready** — Dockerfile with standalone output, docker-compose template
+- **Claude Code**: `CLAUDE.md` defines the mandatory beads (`bd`) issue workflow and the tooling table.
+  `.claude/settings.json` pre-approves the safe commands and denies destructive Prisma commands.
+  Skills under `.claude/skills/` are vendored with attribution (`SOURCE.md` in each).
+- **Other agents** (Cursor, Codex, Copilot): read `AGENTS.md`.
+- Framework docs matching the installed Next.js version are in `node_modules/next/dist/docs/`.
+
+## Conventions worth knowing
+
+- **RTL only**: logical Tailwind utilities (`ms-`, `pe-`, `start-`…), enforced by `npm run lint:rtl`.
+- **Layering is linted**: components cannot import Prisma or services; services cannot import Next or React; actions cannot import UI.
+- **Database names carry a `v2_` prefix** through `@@map`; Prisma model names stay clean. Never `db push --force-reset`.
+- **Env is validated** at boot by `src/lib/env.ts`; `.env.example` lists every variable.
+- **Session tokens are hashed** in the database; deactivating a user or resetting a password revokes all of their sessions.
+
+## Deployment
+
+`docker compose up --build` builds the standalone image, waits for Postgres, runs `prisma migrate deploy`
+and starts the server. The image exposes `/api/health` for orchestrator probes. CI (`.github/workflows/ci.yml`)
+runs lint, typecheck, unit tests, build, and the e2e suite on every push and pull request.
 
 ## Placeholders
 
-The following placeholders are replaced by `setup.sh`:
-
-| Placeholder | Where | What |
-|---|---|---|
-| `{{PROJECT_NAME}}` | package.json, layout.tsx, CLAUDE.md, docker-compose.yml, docs/PRD.md | Project name (kebab-case) |
-
-## Architecture Rules
-
-- **Services** hold all business logic — never in components or actions
-- **Server Actions** are thin wrappers calling services
-- **UI imports** always go through `@/components/UiComponents` or `@/components/ui/*`
-- **Path alias** `@/*` maps to `./src/*` — no deep relative imports
-- **Database** — new tables use `v2_` prefix; never force-reset
+`setup.sh` replaces `{{PROJECT_NAME}}` in `package.json`, `docker-compose.yml`, `src/lib/app-config.ts`,
+`CLAUDE.md`, `AGENTS.md`, `README.md` and `docs/PRD.md`, then removes the boilerplate's git history.

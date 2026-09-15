@@ -1,105 +1,90 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# ─── Project Boilerplate Setup ─────────────────────────────────────────────────────────
-# This script initializes a new project from the boilerplate.
-# It replaces all {{PLACEHOLDERS}} and sets up the environment.
+# ─── Boilerplate setup ────────────────────────────────────────────────────
+# Turns this checkout into a fresh project:
+#   1. replaces {{PROJECT_NAME}} everywhere
+#   2. drops the boilerplate's git history and issue tracker
+#   3. creates .env, installs dependencies, generates the Prisma client
+#   4. makes the first commit
+# Safe to run only once; it refuses to run on an already-initialised project.
 
-BOLD='\033[1m'
-GREEN='\033[0;32m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+BOLD='\033[1m'; GREEN='\033[0;32m'; CYAN='\033[0;36m'; YELLOW='\033[0;33m'; NC='\033[0m'
+say()  { echo -e "${CYAN}$*${NC}"; }
+ok()   { echo -e "  ${GREEN}✓${NC} $*"; }
+warn() { echo -e "  ${YELLOW}⚠${NC} $*"; }
 
-echo -e "${BOLD}${GREEN}🔧 Project Boilerplate Setup${NC}\n"
+cd "$(dirname "$0")"
 
-# ─── Collect project info ─────────────────────────────────────
+echo -e "${BOLD}${GREEN}🔧 Project setup${NC}\n"
 
-read -p "Project name (kebab-case, e.g. my-new-project): " PROJECT_NAME
-if [[ -z "$PROJECT_NAME" ]]; then
-  echo "Error: Project name is required."
+if ! grep -q '"name": "{{PROJECT_NAME}}"' package.json; then
+  echo "This project has already been initialised (package.json name is not the placeholder)."
   exit 1
 fi
 
-# ─── Replace placeholders ────────────────────────────────────
-
-echo -e "\n${CYAN}Replacing placeholders...${NC}"
-
-# macOS-compatible sed (uses -i '' instead of -i)
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  SED_CMD="sed -i ''"
-else
-  SED_CMD="sed -i"
+# ─── Project name ─────────────────────────────────────────────────────────
+PROJECT_NAME="${1:-}"
+if [[ -z "$PROJECT_NAME" ]]; then
+  read -r -p "Project name (kebab-case, e.g. my-new-project): " PROJECT_NAME
+fi
+if [[ ! "$PROJECT_NAME" =~ ^[a-z0-9]+(-[a-z0-9]+)*$ ]]; then
+  echo "Error: project name must be kebab-case (lowercase letters, digits, single dashes)."
+  exit 1
 fi
 
-find . -type f \( -name "*.json" -o -name "*.yml" -o -name "*.yaml" -o -name "*.md" -o -name "*.ts" -o -name "*.tsx" -o -name "*.mjs" -o -name "*.sh" -o -name "*.css" \) \
-  -not -path "./node_modules/*" \
-  -not -path "./.next/*" \
-  -not -path "./.claude/skills/*" \
-  -exec $SED_CMD "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" {} \; 2>/dev/null
+# ─── Replace placeholders ─────────────────────────────────────────────────
+say "Replacing placeholders..."
+grep -rl --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git \
+  --exclude-dir=.claude --exclude-dir=.beads --exclude=setup.sh \
+  '{{PROJECT_NAME}}' . \
+  | xargs perl -pi -e "s/\\{\\{PROJECT_NAME\\}\\}/$PROJECT_NAME/g"
+ok "{{PROJECT_NAME}} → $PROJECT_NAME"
 
-find . -type f \( -name "*.yml" -o -name "*.yaml" \) \
-  -not -path "./node_modules/*" \
-  -exec $SED_CMD "s/{{SERVICE_NAME}}/$SERVICE_NAME/g" {} \; 2>/dev/null
+# ─── Fresh history ────────────────────────────────────────────────────────
+say "Resetting repository state..."
+rm -rf .git .beads
+git init -q
+ok "New git repository"
 
-# Clean up macOS sed backup files
-find . -name "*''" -delete 2>/dev/null
-
-echo "  ✓ Placeholders replaced"
-
-# ─── Environment file ─────────────────────────────────────────
-
+# ─── Environment ──────────────────────────────────────────────────────────
 if [[ ! -f .env ]]; then
   cp .env.example .env
-  echo "  ✓ Created .env from .env.example (edit with your database credentials)"
+  ok ".env created from .env.example"
 else
-  echo "  ⏭ .env already exists, skipping"
+  warn ".env already exists, left untouched"
 fi
 
-# ─── Install dependencies ─────────────────────────────────────
-
-echo -e "\n${CYAN}Installing dependencies...${NC}"
-if [[ -f package-lock.json ]]; then
-  npm ci --legacy-peer-deps
-else
-  npm install --legacy-peer-deps
-fi
-echo "  ✓ Dependencies installed"
-
-# ─── Generate Prisma client ──────────────────────────────────
-
-echo -e "\n${CYAN}Generating Prisma client...${NC}"
+# ─── Dependencies ─────────────────────────────────────────────────────────
+say "Installing dependencies..."
+npm ci --no-audit --no-fund
 npx prisma generate
-echo "  ✓ Prisma client generated"
+ok "Dependencies installed, Prisma client generated"
 
-# ─── Initialize Beads ─────────────────────────────────────────
-
-echo -e "\n${CYAN}Initializing Beads issue tracker...${NC}"
-if command -v bd &> /dev/null; then
-  bd init 2>/dev/null || echo "  ⚠ Beads init failed (you can run 'bd init' manually later)"
+# ─── Issue tracker ────────────────────────────────────────────────────────
+if command -v bd >/dev/null 2>&1; then
+  say "Initialising beads..."
+  bd init --quiet >/dev/null 2>&1 && ok "beads initialised" || warn "bd init failed; run it manually later"
 else
-  echo "  ⏭ Beads CLI not found (install it to use beads issue tracking)"
+  warn "beads CLI (bd) not found — install it to use the issue-tracking workflow in CLAUDE.md"
 fi
 
-# ─── Initialize Git ───────────────────────────────────────────
+# bd init appends a section to AGENTS.md / CLAUDE.md; keep them Prettier-clean.
+npx prettier --write AGENTS.md CLAUDE.md >/dev/null 2>&1 || true
 
-echo -e "\n${CYAN}Initializing Git repository...${NC}"
-if [[ ! -d .git ]]; then
-  git init
-  git add -A
-  git commit -m "Initial project from boilerplate"
-  echo "  ✓ Git initialized with initial commit"
-else
-  echo "  ⏭ Git already initialized"
-fi
+# ─── First commit ─────────────────────────────────────────────────────────
+git add -A
+git -c user.name="${GIT_AUTHOR_NAME:-setup}" -c user.email="${GIT_AUTHOR_EMAIL:-setup@localhost}" \
+  commit -q -m "Initial commit from boilerplate"
+ok "Initial commit"
 
-# ─── Done ─────────────────────────────────────────────────────
-
-echo -e "\n${BOLD}${GREEN}✅ Project '$PROJECT_NAME' is ready!${NC}\n"
+# ─── Done ─────────────────────────────────────────────────────────────────
+echo -e "\n${BOLD}${GREEN}✅ '$PROJECT_NAME' is ready.${NC}\n"
 echo "Next steps:"
-echo "  1. Edit .env with your database credentials"
-echo "  2. Run: npx prisma migrate dev --name init"
-echo "  3. Run: npx tsx prisma/seed.ts"
-echo "  4. Run: npm run dev"
+echo "  1. Review .env (DATABASE_URL points at the docker-compose Postgres by default)"
+echo "  2. npm run db:up        # start Postgres"
+echo "  3. npm run db:deploy    # apply migrations"
+echo "  4. npm run db:seed      # create admin / admin123"
+echo "  5. npm run dev"
 echo ""
-echo "Default admin credentials: admin / admin123"
-echo ""
+echo "Then open CLAUDE.md / AGENTS.md before asking an agent to build features."

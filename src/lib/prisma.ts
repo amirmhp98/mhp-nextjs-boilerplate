@@ -1,46 +1,39 @@
+import 'server-only';
 import { PrismaClient } from '@prisma/client';
+import { env } from '@/lib/env';
 import { logger } from '@/lib/logger';
 
-const globalForPrisma = globalThis as unknown as {
-  prismaGlobal: PrismaClient | undefined;
-};
-
-const LOG_LEVELS: Array<'query' | 'info' | 'warn' | 'error'> =
-  process.env.PRISMA_LOG_QUERIES === 'true'
-    ? ['query', 'warn', 'error']
-    : ['warn', 'error'];
+const globalForPrisma = globalThis as unknown as { prismaGlobal?: PrismaClient };
 
 export const prisma =
   globalForPrisma.prismaGlobal ??
   new PrismaClient({
-    log: LOG_LEVELS,
-    // Connection pool is configured via DATABASE_URL query params:
+    log: env.PRISMA_LOG_QUERIES ? ['query', 'warn', 'error'] : ['warn', 'error'],
+    // Pool tuning belongs in DATABASE_URL:
     //   ?connection_limit=10&pool_timeout=30&connect_timeout=10
-    // Defaults: connection_limit = num_cpus * 2 + 1, pool_timeout = 10s
   });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prismaGlobal = prisma;
-}
+// Reuse one client across hot reloads in development.
+if (env.NODE_ENV !== 'production') globalForPrisma.prismaGlobal = prisma;
 
 /**
- * Pre-warm the connection pool so the first user request doesn't pay
- * the SSL-handshake + TCP-connect cost (~500ms–2s for remote Supabase).
- *
- * Called once at module-load time; subsequent imports are no-ops
- * because the singleton is already connected.
+ * Pre-warm the pool so the first request does not pay the connect cost.
+ * Skipped during `next build`, which evaluates this module without a database.
+ * Failure is non-fatal: Prisma lazy-connects on the first query.
  */
-const warmupPromise = prisma
-  .$connect()
-  .then(() => {
-    logger.info('Prisma connection pool pre-warmed');
-  })
-  .catch((err) => {
-    // Non-fatal: the pool will lazy-connect on first query.
-    logger.warn({ err }, 'Prisma pool pre-warm failed (will retry on first query)');
-  });
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+const warmupPromise: Promise<void> = isBuildPhase
+  ? Promise.resolve()
+  : prisma
+      .$connect()
+      .then(() => {
+        logger.info('Prisma connection pool ready');
+      })
+      .catch((err: unknown) => {
+        logger.warn({ err }, 'Prisma pre-connect failed; will retry on first query');
+      });
 
-/** Await this if you need to guarantee the pool is ready (e.g. in health checks). */
+/** Await this when the pool must be ready (e.g. health checks). */
 export const ensureConnected = () => warmupPromise;
 
 export default prisma;
